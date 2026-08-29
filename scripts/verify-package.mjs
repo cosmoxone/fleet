@@ -29,19 +29,35 @@ let dir = target;
 if (target.endsWith('.zip')) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fleet-verify-'));
   await extractZip(target, { dir: tmp });
-  dir = fs.readdirSync(tmp, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => path.join(tmp, e.name))[0];
-  if (!dir) {
-    console.error('no directory found inside zip');
-    process.exit(1);
-  }
+  dir = tmp;
 }
 
-// macOS bundles keep resources under <App>.app/Contents/Resources
-const resourcesDir = fs.existsSync(path.join(dir, 'Contents', 'Resources'))
-  ? path.join(dir, 'Contents', 'Resources')
-  : path.join(dir, 'resources');
+// Locate the resources dir: win32/linux zips unpack flat or under a single
+// wrapper directory; macOS zips contain a <App>.app bundle
+const searchRoots = [
+  dir,
+  ...fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => path.join(dir, e.name)),
+];
+let resourcesDir = null;
+for (const root of searchRoots) {
+  for (const candidate of [
+    path.join(root, 'Contents', 'Resources'),
+    path.join(root, 'resources'),
+  ]) {
+    if (fs.existsSync(path.join(candidate, 'app.asar'))) {
+      resourcesDir = candidate;
+      break;
+    }
+  }
+  if (resourcesDir) break;
+}
+if (!resourcesDir) {
+  console.error(`no resources/app.asar found in ${dir}`);
+  process.exit(1);
+}
 
 let failures = 0;
 
