@@ -19,17 +19,29 @@ permissions:
   contents: write
 
 jobs:
+  targets:
+    runs-on: ubuntu-latest
+    outputs:
+      include: ${{ steps.pick.outputs.include }}
+    steps:
+      - id: pick
+        shell: bash
+        run: |
+          all='[{"target":"linux-x64","platform":"linux","arch":"x64","runner":"ubuntu-latest"},{"target":"win32-x64","platform":"win32","arch":"x64","runner":"windows-latest"},{"target":"darwin-arm64","platform":"darwin","arch":"arm64","runner":"macos-latest"},{"target":"darwin-x64","platform":"darwin","arch":"x64","runner":"macos-15-intel"}]'
+          case "${{ inputs.platform }}" in
+            linux)  echo 'include=[{"target":"linux-x64","platform":"linux","arch":"x64","runner":"ubuntu-latest"}]' >> "$GITHUB_OUTPUT" ;;
+            win32)  echo 'include=[{"target":"win32-x64","platform":"win32","arch":"x64","runner":"windows-latest"}]' >> "$GITHUB_OUTPUT" ;;
+            darwin) echo 'include=[{"target":"darwin-arm64","platform":"darwin","arch":"arm64","runner":"macos-latest"},{"target":"darwin-x64","platform":"darwin","arch":"x64","runner":"macos-15-intel"}]' >> "$GITHUB_OUTPUT" ;;
+            *)      echo "include=$all" >> "$GITHUB_OUTPUT" ;;
+          esac
+
   package:
+    needs: [targets]
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { target: linux-x64, platform: linux, arch: x64, runner: ubuntu-latest }
-          - { target: win32-x64, platform: win32, arch: x64, runner: windows-latest }
-          - { target: darwin-arm64, platform: darwin, arch: arm64, runner: macos-latest }
-          - { target: darwin-x64, platform: darwin, arch: x64, runner: macos-15-intel }
+        include: ${{ fromJSON(needs.targets.outputs.include) }}
     runs-on: ${{ matrix.runner }}
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.platform == '' || matrix.platform == inputs.platform }}
     steps:
       - uses: actions/checkout@v4
 
