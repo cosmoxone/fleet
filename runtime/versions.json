@@ -1,0 +1,14 @@
+{
+  "$comment": "fleet 后端版本矩阵唯一事实源。sha256 在 P3 fetch-goose.ts 落实时填入。",
+  "schema": 1,
+  "drivers": {
+    "goose": {
+      "protocol": "acp-over-websocket",
+      "upstream": "https://github.com/aaif-goose/goose",
+      "supportedVersions": ">=1.46.0",
+      "packagedVersion": "1.47.0",
+      "validatedVersion": "1.46.0",
+      "distribution": "github release zip, SHA256 verified at fetch time, injected at resources/bin/goose(.exe)"
+    }
+  }
+}
