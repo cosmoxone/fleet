@@ -53,6 +53,18 @@ export function formatAcpError(error: unknown): string {
   return errorMessage(error);
 }
 
+const METHOD_NOT_FOUND_CODE = -32601;
+
+/**
+ * True when the backend answered with JSON-RPC "method not found" — the
+ * standard signal for optional/goose-extension methods that a non-goose
+ * driver (e.g. dsh / DeepSeek Harness) does not implement. Callers degrade
+ * gracefully instead of surfacing an error.
+ */
+export function isMethodNotSupportedError(error: unknown): boolean {
+  return error instanceof RequestError && error.code === METHOD_NOT_FOUND_CODE;
+}
+
 interface AcpJsonRpcError {
   message: string;
   data: Record<string, unknown>;

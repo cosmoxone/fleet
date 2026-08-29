@@ -1195,7 +1195,8 @@ const createChat = async (
       gooseServeLease = gooseServeLeases.createExternal(
         acpWebSocketUrlFromHttpBase(externalBaseUrl, serverSecret),
         serverSecret,
-        leaseCertificateTrust ? async () => leaseCertificateTrust.release() : undefined
+        leaseCertificateTrust ? async () => leaseCertificateTrust.release() : undefined,
+        externalBackend.driver
       );
     } catch (error) {
       externalCertificateTrust?.release();
@@ -2094,6 +2095,17 @@ ipcMain.handle('get-acp-url', async (event) => {
     return null;
   }
   return gooseServeLeases.getAcpUrl(windowId) ?? null;
+});
+
+// Backend driver bound to this window ('goose' for the local serve; fleet
+// nodes carry their configured driver). Falls back to 'goose' when the
+// window has no lease yet.
+ipcMain.handle('get-acp-driver', async (event) => {
+  const windowId = BrowserWindow.fromWebContents(event.sender)?.id;
+  if (!windowId) {
+    return 'goose';
+  }
+  return gooseServeLeases.getDriver(windowId) ?? 'goose';
 });
 
 // Handle menu bar icon visibility

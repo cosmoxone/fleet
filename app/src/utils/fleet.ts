@@ -11,9 +11,28 @@ export interface ExternalBackend {
   secret: string;
   certFingerprint?: string;
   workingDir?: string;
+  /** Backend driver serving this URL ('goose' | 'dsh'). Omitted = goose. */
+  driver?: string;
   /** Set when this backend comes from a fleet node entry (per-window binding). */
   fleetNodeId?: string;
   fleetNodeName?: string;
+}
+
+/**
+ * Driver options for the fleet node settings UI. Mirrored from
+ * runtime/drivers/index.ts (the app does not import core/runtime — snapshot
+ * boundary). Keep both lists in sync when adding drivers.
+ */
+export const FLEET_DRIVER_OPTIONS = [
+  { id: 'goose', displayName: 'goose (goose serve, ACP over WebSocket)' },
+  { id: 'dsh', displayName: 'DeepSeek Harness (dsh-acp-demo via acp-ws bridge)' },
+] as const;
+
+export type FleetDriverId = 'goose' | 'dsh';
+
+/** Normalizes a node's driver field; unknown/missing values fall back to goose. */
+export function effectiveFleetDriver(driver: string | undefined): FleetDriverId {
+  return FLEET_DRIVER_OPTIONS.some((option) => option.id === driver) ? (driver as FleetDriverId) : 'goose';
 }
 
 export function getFleetNodeBackend(settings: Settings, backendId: string): ExternalBackend | null {
@@ -27,6 +46,7 @@ export function getFleetNodeBackend(settings: Settings, backendId: string): Exte
     secret: node.secret,
     certFingerprint: node.certFingerprint,
     workingDir: node.workingDir,
+    driver: effectiveFleetDriver(node.driver),
     fleetNodeId: node.id,
     fleetNodeName: node.name,
   };

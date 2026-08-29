@@ -7,7 +7,8 @@ import {
   type SessionInfo,
 } from '@agentclientprotocol/sdk';
 import type { GooseExtension, SessionExportFormat, SessionImportSource } from '@aaif/goose-sdk';
-import { getAcpClient } from './acpConnection';
+import { getAcpClient, getAcpDriver } from './acpConnection';
+import { isMethodNotSupportedError } from './errors';
 import type { ExtensionLoadResult } from '../types/extensions';
 import type { Session } from '../types/session';
 import type { Recipe } from '../recipe';
@@ -152,11 +153,20 @@ export async function acpListSessions(
     meta.query = keyword;
   }
   request._meta = meta;
-  const response = await client.connection.agent.request(methods.agent.session.list, request);
-  return {
-    sessions: response.sessions.map(sessionInfoToListItem),
-    nextCursor: response.nextCursor ?? null,
-  };
+  try {
+    const response = await client.connection.agent.request(methods.agent.session.list, request);
+    return {
+      sessions: response.sessions.map(sessionInfoToListItem),
+      nextCursor: response.nextCursor ?? null,
+    };
+  } catch (error) {
+    // Backends without session/list (e.g. dsh rc.2) report "method not
+    // found" — degrade to an empty list instead of failing the sidebar.
+    if (isMethodNotSupportedError(error)) {
+      return { sessions: [], nextCursor: null };
+    }
+    throw error;
+  }
 }
 
 export async function acpListRecentSessions(maxSessions: number): Promise<SessionListItem[]> {
@@ -165,12 +175,19 @@ export async function acpListRecentSessions(maxSessions: number): Promise<Sessio
   }
 
   const client = await getAcpClient();
-  const response = await client.connection.agent.request(methods.agent.session.list, {
-    _meta: { types: SESSION_LIST_TYPES },
-  });
-  return response.sessions.slice(0, maxSessions).map(sessionInfoToListItem);
+  try {
+    const response = await client.connection.agent.request(methods.agent.session.list, {
+      _meta: { types: SESSION_LIST_TYPES },
+    });
+    return response.sessions.slice(0, maxSessions).map(sessionInfoToListItem);
+  } catch (error) {
+    // Backends without session/list (e.g. dsh rc.2): no recent sessions.
+    if (isMethodNotSupportedError(error)) {
+      return [];
+    }
+    throw error;
+  }
 }
-
 export async function acpGetSessionListItem(sessionId: string): Promise<SessionListItem> {
   const client = await getAcpClient();
   const response = await client.goose.sessionInfo_unstable({ sessionId });
@@ -235,6 +252,26 @@ export async function acpNewSession(
   recipe?: AcpRecipeOptions
 ): Promise<AcpNewSessionResult> {
   const client = await getAcpClient();
+
+  // Non-goose drivers (dsh / DeepSeek Harness): standard ACP face only —
+  // no goose `_meta` in session/new and no `goose.sessionInfo_unstable`
+  // follow-up (it answers -32601 there). Synthesize a minimal SessionInfo;
+  // the model is fixed server-side (remote cordis.yml).
+  if ((await getAcpDriver()) !== 'goose') {
+    const response = await client.connection.agent.request(methods.agent.session.new, {
+      cwd,
+      mcpServers: [],
+    } satisfies NewSessionRequest);
+    const sessionId = String(response.sessionId);
+    const sessionInfo: SessionInfo = {
+      sessionId,
+      cwd,
+      updatedAt: new Date().toISOString(),
+      _meta: { modelId: 'remote (cordis.yml)' } as SessionInfo['_meta'],
+    };
+    return { sessionId, sessionInfo, meta: {} };
+  }
+
   const meta: Record<string, unknown> = { client: 'goose-desktop' };
   if (gooseExtensions.length > 0) {
     meta.enabledExtensions = gooseExtensions;

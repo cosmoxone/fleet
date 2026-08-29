@@ -1,8 +1,10 @@
-import { methods, type SessionInfo } from '@agentclientprotocol/sdk';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAcpClient } from '../acpConnection';
+import { methods, RequestError, type SessionInfo } from '@agentclientprotocol/sdk';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { getAcpClient, getAcpDriver } from '../acpConnection';
 import {
   acpGetSessionListItem,
+  acpListRecentSessions,
+  acpListSessions,
   acpLoadSession,
   acpNewSession,
   sessionInfoToSession,
@@ -10,6 +12,7 @@ import {
 
 vi.mock('../acpConnection', () => ({
   getAcpClient: vi.fn(),
+  getAcpDriver: vi.fn(async () => 'goose'),
 }));
 
 function sessionInfo(overrides: Partial<SessionInfo> = {}): SessionInfo {
@@ -151,5 +154,75 @@ describe('ACP sessions', () => {
       providerId: 'anthropic',
       modelId: 'claude-sonnet-4-5',
     });
+  });
+});
+
+describe('non-goose drivers (dsh)', () => {
+  beforeEach(() => {
+    vi.mocked(getAcpDriver).mockResolvedValue('dsh');
+  });
+
+  afterEach(() => {
+    vi.mocked(getAcpDriver).mockResolvedValue('goose');
+  });
+
+  it('creates a session on the standard ACP face without goose metadata', async () => {
+    const client = {
+      connection: {
+        agent: {
+          request: vi.fn().mockResolvedValue({ sessionId: 'session-1' }),
+        },
+      },
+      goose: {
+        sessionInfo_unstable: vi.fn(),
+      },
+    };
+    vi.mocked(getAcpClient).mockResolvedValue(
+      client as unknown as Awaited<ReturnType<typeof getAcpClient>>
+    );
+
+    const result = await acpNewSession('/tmp', []);
+
+    expect(client.connection.agent.request).toHaveBeenCalledWith(methods.agent.session.new, {
+      cwd: '/tmp',
+      mcpServers: [],
+    });
+    expect(client.goose.sessionInfo_unstable).not.toHaveBeenCalled();
+    expect(result.sessionId).toBe('session-1');
+    expect(result.sessionInfo.cwd).toBe('/tmp');
+    expect(result.meta).toEqual({});
+    const session = sessionInfoToSession(result.sessionInfo);
+    expect(session.model_config?.model_name).toBe('remote (cordis.yml)');
+  });
+
+  it('degrades session.list to an empty page when the method is missing', async () => {
+    const client = {
+      connection: {
+        agent: {
+          request: vi.fn().mockRejectedValue(new RequestError(-32601, 'Method not found')),
+        },
+      },
+    };
+    vi.mocked(getAcpClient).mockResolvedValue(
+      client as unknown as Awaited<ReturnType<typeof getAcpClient>>
+    );
+
+    await expect(acpListSessions()).resolves.toEqual({ sessions: [], nextCursor: null });
+    await expect(acpListRecentSessions(5)).resolves.toEqual([]);
+  });
+
+  it('still surfaces real session.list errors', async () => {
+    const client = {
+      connection: {
+        agent: {
+          request: vi.fn().mockRejectedValue(new RequestError(-32000, 'auth required')),
+        },
+      },
+    };
+    vi.mocked(getAcpClient).mockResolvedValue(
+      client as unknown as Awaited<ReturnType<typeof getAcpClient>>
+    );
+
+    await expect(acpListSessions()).rejects.toBeInstanceOf(RequestError);
   });
 });

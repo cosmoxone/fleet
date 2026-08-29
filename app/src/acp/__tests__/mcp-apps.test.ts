@@ -12,6 +12,7 @@ import {
 
 vi.mock('../acpConnection', () => ({
   getAcpClient: vi.fn(),
+  getAcpDriver: vi.fn(async () => 'goose'),
 }));
 
 function createClient() {

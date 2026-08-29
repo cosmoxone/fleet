@@ -54,8 +54,15 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
   providersListRef.current = providersList;
 
   const reloadConfig = useCallback(async () => {
-    const config = await acpReadAllConfig();
-    setConfig(config);
+    try {
+      const config = await acpReadAllConfig();
+      setConfig(config);
+    } catch (error) {
+      // goose extension methods (configReadAll) answer "method not found" on
+      // non-goose backends (dsh) — keep the empty config instead of failing.
+      console.error('Failed to reload config:', error);
+      setConfig({});
+    }
   }, []);
 
   const upsert = useCallback(
@@ -154,8 +161,13 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
     // Load all configuration data and providers on mount
     (async () => {
       // Load config
-      const configResponse = await acpReadAllConfig();
-      setConfig(configResponse);
+      try {
+        const configResponse = await acpReadAllConfig();
+        setConfig(configResponse);
+      } catch (error) {
+        console.error('Failed to load config:', error);
+        setConfig({});
+      }
 
       // Load providers
       try {

@@ -6,6 +6,8 @@ export const GOOSE_SERVE_EXITED_USER_MESSAGE =
 export interface GooseServeLease {
   acpUrl: string;
   secretKey: string;
+  /** Backend driver id ('goose' | 'dsh'); defaults to 'goose' for local serves. */
+  driver?: string;
   cleanup: () => Promise<void>;
   windowIds: Set<number>;
   cleanedUp: boolean;
@@ -73,11 +75,13 @@ export class GooseServeLeaseRegistry {
   createExternal(
     acpUrl: string,
     secretKey: string,
-    cleanup: () => Promise<void> = async () => undefined
+    cleanup: () => Promise<void> = async () => undefined,
+    driver?: string
   ): GooseServeLease {
     return {
       acpUrl,
       secretKey,
+      driver,
       cleanup,
       windowIds: new Set<number>(),
       cleanedUp: false,
@@ -100,6 +104,10 @@ export class GooseServeLeaseRegistry {
       throw new Error(GOOSE_SERVE_EXITED_USER_MESSAGE);
     }
     return lease.acpUrl;
+  }
+
+  getDriver(windowId: number): string | null {
+    return this.get(windowId)?.driver ?? null;
   }
 
   getSecretKey(windowId: number): string | null {

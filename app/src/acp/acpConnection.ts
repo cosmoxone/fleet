@@ -1,5 +1,5 @@
 import { DEFAULT_GOOSE_MCP_HOST_CAPABILITIES } from '@aaif/goose-sdk';
-import { methods, PROTOCOL_VERSION, type InitializeResponse } from '@agentclientprotocol/sdk';
+import { methods, PROTOCOL_VERSION, type InitializeRequest, type InitializeResponse } from '@agentclientprotocol/sdk';
 import { createWebSocketStream } from '@agentclientprotocol/sdk/experimental/ws-client';
 import packageJson from '../../package.json';
 import { GOOSE_SERVE_EXITED_USER_MESSAGE } from '../gooseServeLeaseRegistry';
@@ -19,6 +19,7 @@ import { requestAcpRecipeParams } from './recipeParamRequests';
 type AcpConnection = {
   client: GooseAcpClient;
   initializeResponse: InitializeResponse;
+  driverId: string;
 };
 
 type AcpRecoveryListener = (recovering: boolean) => void;
@@ -40,6 +41,45 @@ export async function getAcpClient(): Promise<GooseAcpClient> {
 
 export async function getAcpInitializeResponse(): Promise<InitializeResponse> {
   return (await getConnection()).initializeResponse;
+}
+
+/**
+ * Backend driver id for this window ('goose' | 'dsh'). Cached from the open
+ * connection; falls back to the main process answer (or 'goose' when the
+ * preload bridge predates this IPC) so callers never block on it.
+ */
+export async function getAcpDriver(): Promise<string> {
+  if (currentConnection) {
+    return currentConnection.driverId;
+  }
+  return driverIdForConnection();
+}
+
+async function fetchDriverId(): Promise<string> {
+  try {
+    const api = window.electron as typeof window.electron & {
+      getAcpDriver?: () => Promise<string>;
+    };
+    if (typeof api.getAcpDriver === 'function') {
+      return (await api.getAcpDriver()) || 'goose';
+    }
+  } catch {
+    // Older preload / local window: assume the default goose backend.
+  }
+  return 'goose';
+}
+
+/** Driver is constant per window; cache to keep reconnect timing unchanged. */
+let cachedDriverId: string | null = null;
+
+function driverIdForConnection(): Promise<string> {
+  if (cachedDriverId) {
+    return Promise.resolve(cachedDriverId);
+  }
+  return fetchDriverId().then((driverId) => {
+    cachedDriverId = driverId;
+    return driverId;
+  });
 }
 
 export function reconnectAcpAfterSystemResume(): void {
@@ -133,32 +173,52 @@ async function openConnection(generation: number): Promise<AcpConnection> {
     throw new Error('ACP URL is not available');
   }
 
+  // Driver is constant per window; cached after the first connection so
+  // reconnect paths keep their original microtask timing.
+  const driverId = cachedDriverId ?? (await driverIdForConnection());
+
   // Electron treats an explicitly passed undefined protocol as a subprotocol.
   const stream = createWebSocketStream(wsUrl, { protocols: [] });
   const client = connectGooseAcpClient(stream, createClientCallbacks());
 
   try {
-    const initializeResponse = await withTimeout(
-      client.connection.agent.request(methods.agent.initialize, {
-        protocolVersion: ACP_V1_PROTOCOL_VERSION,
-        _meta: {
-          'goose/useLoginShellPath': true,
-        },
-        clientCapabilities: {
-          elicitation: { form: {} },
-          _meta: {
-            goose: {
-              mcpHostCapabilities: DEFAULT_GOOSE_MCP_HOST_CAPABILITIES,
-              customNotifications: true,
-              recipeParameterRequests: true,
+    // Goose extensions (`_meta`) are only sent to goose backends; other
+    // drivers (dsh) initialize on the standard ACP face (design D2).
+    const initializeParams: InitializeRequest =
+      driverId === 'goose'
+        ? {
+            protocolVersion: ACP_V1_PROTOCOL_VERSION,
+            _meta: {
+              'goose/useLoginShellPath': true,
             },
-          },
-        },
-        clientInfo: {
-          name: packageJson.name,
-          version: packageJson.version,
-        },
-      }),
+            clientCapabilities: {
+              elicitation: { form: {} },
+              _meta: {
+                goose: {
+                  mcpHostCapabilities: DEFAULT_GOOSE_MCP_HOST_CAPABILITIES,
+                  customNotifications: true,
+                  recipeParameterRequests: true,
+                },
+              },
+            },
+            clientInfo: {
+              name: packageJson.name,
+              version: packageJson.version,
+            },
+          }
+        : {
+            protocolVersion: ACP_V1_PROTOCOL_VERSION,
+            clientCapabilities: {
+              elicitation: { form: {} },
+            },
+            clientInfo: {
+              name: packageJson.name,
+              version: packageJson.version,
+            },
+          };
+
+    const initializeResponse = await withTimeout(
+      client.connection.agent.request(methods.agent.initialize, initializeParams),
       ACP_INITIALIZE_TIMEOUT_MS,
       `ACP initialize timed out after ${ACP_INITIALIZE_TIMEOUT_MS}ms`
     );
@@ -167,7 +227,7 @@ async function openConnection(generation: number): Promise<AcpConnection> {
       throw new Error('ACP connection attempt is no longer current');
     }
 
-    const connection = { client, initializeResponse };
+    const connection = { client, initializeResponse, driverId };
     currentConnection = connection;
     const handleClose = () => {
       if (currentConnection === connection) {
