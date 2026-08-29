@@ -4,12 +4,13 @@
 //   2. asar main bundle contains the fleet markers
 //   3. artifact sha256 recorded for transfer verification
 // Usage: node scripts/verify-package.mjs <dir-or-zip> [name.zip]
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import asar from '@electron/asar';
+
+const extractZip = (await import('extract-zip')).default;
 
 const MARKERS = ['New Chat on Node', 'GOOSE_USER_DATA_DIR', 'fleet://'];
 
@@ -27,15 +28,7 @@ target = path.resolve(target);
 let dir = target;
 if (target.endsWith('.zip')) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fleet-verify-'));
-  // Windows runners have bsdtar but no unzip; bsdtar chokes on drive-letter
-  // paths ("D:..." parsed as remote host), so copy the zip in and use
-  // relative paths only
-  if (process.platform === 'win32') {
-    fs.copyFileSync(target, path.join(tmp, 'pkg.zip'));
-    execFileSync('tar', ['-xf', 'pkg.zip'], { cwd: tmp });
-  } else {
-    execFileSync('unzip', ['-q', target, '-d', tmp]);
-  }
+  await extractZip(target, { dir: tmp });
   dir = fs.readdirSync(tmp, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => path.join(tmp, e.name))[0];
