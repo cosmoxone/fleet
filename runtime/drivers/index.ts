@@ -1,0 +1,31 @@
+import type { AcpDriver } from '../../core/driver';
+import { gooseDriver } from './goose/driver';
+import { dshDriver } from './dsh/driver';
+import { DEFAULT_DRIVER_ID, effectiveDriverId, type FleetNode } from '../../core/node';
+
+/**
+ * Driver registry (core-facing side). The app hosts a mirrored option list in
+ * `app/src/utils/fleet.ts` because the Electron app does not import
+ * core/runtime (snapshot boundary) — keep both in sync when adding drivers.
+ */
+export const DRIVERS: ReadonlyMap<string, AcpDriver> = new Map([
+  [gooseDriver.id, gooseDriver],
+  [dshDriver.id, dshDriver],
+]);
+
+export function resolveDriver(id: string | undefined): AcpDriver {
+  const effective = id ?? DEFAULT_DRIVER_ID;
+  const driver = DRIVERS.get(effective);
+  if (!driver) {
+    throw new Error(`unknown fleet driver: ${effective}`);
+  }
+  return driver;
+}
+
+export function resolveDriverForNode(node: Pick<FleetNode, 'driver'>): AcpDriver {
+  return resolveDriver(effectiveDriverId(node));
+}
+
+export function listDriverOptions(): { id: string; displayName: string }[] {
+  return [...DRIVERS.values()].map((driver) => ({ id: driver.id, displayName: driver.displayName }));
+}

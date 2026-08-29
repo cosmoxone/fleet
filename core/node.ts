@@ -13,7 +13,7 @@ export interface FleetNode {
 
 export const DEFAULT_DRIVER_ID = 'goose';
 
-export function effectiveDriverId(node: FleetNode): string {
+export function effectiveDriverId(node: Pick<FleetNode, 'driver'>): string {
   return node.driver ?? DEFAULT_DRIVER_ID;
 }
 
