@@ -1164,7 +1164,9 @@ const createChat = async (
           title: isFleetNode ? 'Fleet Node Unreachable' : 'External Backend Unreachable',
           message: `Could not connect to external backend at ${externalBaseUrl}`,
           detail:
-            'The external backend must be running and the configured secret must match GOOSE_SERVER__SECRET_KEY on the server.',
+            externalBackend.driver === 'dsh'
+              ? 'The dsh node must be running (dsh-fleet acp-ws bridge) and the configured secret must match the bridge --token.'
+              : 'The external backend must be running and the configured secret must match GOOSE_SERVER__SECRET_KEY on the server.',
           buttons: canDisableExternalBackend
             ? ['Disable External Backend & Retry', 'Quit']
             : isFleetNode

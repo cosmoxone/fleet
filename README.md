@@ -2,7 +2,8 @@
 
 多 Agent 调度壳（multi-agent ACP orchestrator shell）。fleet 编排多个 ACP 兼容后端节点；
 **goose 是首个驱动**，以官方 release 二进制 + `goose serve` 公开 CLI 契约方式引用，
-不维护 goose 源码。后续规划支持 deepseek harness 等 ACP 兼容后端（见 `INTEGRATION.md`）。
+不维护 goose 源码。**DeepSeek Harness（dsh）是第二驱动**（节点 = `dsh-acp-demo` 经
+dsh-fleet 的 `acp-ws.mjs` WebSocket 桥，同契约接入，设计见 `docs/features/dsh-harness-driver.md`）。
 
 ## 仓库结构
 
@@ -30,6 +31,11 @@ GOOSE_SERVER__SECRET_KEY=<secret> goose serve --host 0.0.0.0 --port 3284 --tls
 
 壳内「设置 → 共享 → Fleet Nodes」添加节点（URL/secret/TLS 指纹），菜单「New Chat on Node…」
 按节点开窗。命令行管理节点：`pnpm node-cli -- --help`。
+
+dsh（DeepSeek Harness）节点：远端用 [dsh-fleet](../harness/dsh-dir/dsh-fleet) 部署
+`dsh-acp-demo` 并起同契约 WS 桥（`node bridge/acp-ws.mjs --port 3284 --token <secret>`），
+壳内添加节点时 Driver 选 **DeepSeek Harness** 即可；模型由远端 `cordis.yml` 固定，
+会话历史/Recipes 等扩展面对 dsh 节点自动降级（详见 `docs/features/dsh-harness-driver.md`）。
 
 > 本产品编排 goose agents；goose 及其商标归各自所有者，Fleet 与 goose 项目无隶属关系。
 

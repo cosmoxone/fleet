@@ -1269,7 +1269,16 @@
     "defaultMessage": "Delete"
   },
   "fleetNodesSection.description": {
-    "defaultMessage": "Remote goose servers you can open chat windows on via File → New Chat on Node…"
+    "defaultMessage": "Remote ACP backends (goose serve or DeepSeek Harness via the acp-ws bridge) you can open chat windows on via File → New Chat on Node…"
+  },
+  "fleetNodesSection.driver": {
+    "defaultMessage": "Driver"
+  },
+  "fleetNodesSection.driverDsh": {
+    "defaultMessage": "DeepSeek Harness (dsh-acp-demo via acp-ws bridge)"
+  },
+  "fleetNodesSection.driverGoose": {
+    "defaultMessage": "goose (goose serve, ACP over WebSocket)"
   },
   "fleetNodesSection.empty": {
     "defaultMessage": "No fleet nodes configured yet. Add one to enable per-node chat windows."
@@ -1289,7 +1298,10 @@
   "fleetNodesSection.secretKey": {
     "defaultMessage": "Secret Key"
   },
-  "fleetNodesSection.secretKeyPlaceholder": {
+  "fleetNodesSection.secretKeyPlaceholderDsh": {
+    "defaultMessage": "acp-ws bridge --token on the node"
+  },
+  "fleetNodesSection.secretKeyPlaceholderGoose": {
     "defaultMessage": "GOOSE_SERVER__SECRET_KEY on the node"
   },
   "fleetNodesSection.serverUrl": {

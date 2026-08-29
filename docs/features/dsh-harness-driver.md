@@ -1,9 +1,34 @@
 # 特性设计：接入 DeepSeek Harness（dsh）驱动
 
-> 状态：设计 v1.1（review 修订版），待实施。对应 REFACTORING §5.3 "v1.x 用第 2 个真实后端验证驱动抽象" 的时机。
+> 状态：**已实施（c1/c2/c3 落地，2026-08-30，分支 feature/dsh-driver）**；人工全链路验收（真实 dsh 桥 + agent 对话）待桌面环境执行。
 > 服务端（被控端）仓库：`../harness/dsh-dir/dsh-fleet`（下称 dsh-fleet）。
 > 依据：dsh-fleet `docs/fleet-ui-driver-advisory.md`（M3 建议稿，已评审）+ `docs/fleet-ui-integration-design.md`（M1/M2/M4 已完成）+ 本仓库代码核对（2026-08-30）。
 > v1.1 变更（2026-08-30 review）：D1/D2 用户确认采纳；新增 **D7 能力降级模型**（review 发现 F1：renderer 运行时调用 30+ 个 `goose.*_unstable` 扩展方法，`acpNewSession` 在 session/new 后必调 `goose.sessionInfo_unstable`，对 dsh 是阻断项）；§5/§6/§7 相应扩充。
+
+## 9. 实施记录（2026-08-30）
+
+- **c1** `runtime/drivers/dsh/`（driver + 注册表 + 测试）+ versions.json dsh 条目；`core/node.ts effectiveDriverId` 放宽为 `Pick<FleetNode,'driver'>`；
+- **c2** driver 全链路穿透（settings→fleet→lease→main→preload→renderer）；`acpConnection` 按驱动 initialize + 驱动缓存（保持重连微任务时序）；`acpNewSession` dsh 分流 + 合成 SessionInfo（模型标注 `remote (cordis.yml)`）；`session.list`/`configReadAll` -32601 降级；`isMethodNotSupportedError` 工具；**实施中发现**：`session/cancel` 走 `notify`（无响应无 -32601 报错面）→ R8 软化仅剩文档说明；steer 已有 catch 兜底（console.warn + 回退普通提交），无需改动；
+- **c3** FleetNodesSection Driver 下拉（Select 组件，即时提交 `commitNodeWith`）+ secret 占位符随驱动切换；i18n 三 locale（extract/compile/check/validate 全过）；节点不可达弹窗按驱动文案；INTEGRATION.md 契约 1（dsh 行 = dsh-fleet M5）+ 契约 3（37 handler，`get-acp-driver`）；README 驱动说明；
+- 验证：root `pnpm test` 42✓ + `typecheck`✓；app `typecheck`✓ + `test:run` 72 文件 699✓；dsh 桥冒烟见 §6 记录（acp-smoke 对 acp-ws.mjs + mock stdio）。
+
+## 10. 冒烟记录（2026-08-30，桥修复后）
+
+对 `acp-ws.mjs --token` + mock stdio ACP（agentInfo=deepseek-harness-acp）：
+
+| 检查 | 结果 |
+|---|---|
+| `GET /status` 错/对 secret | 401 / 200 ✓ |
+| `GET /acp?token=` 非升级 | **406** ✓（健康检查语义） |
+| `node runtime/acp-smoke/acp-smoke.mjs http://127.0.0.1:<p> <token>` | **SMOKE-OK agent: deepseek-harness-acp protocol: 1** ✓ |
+| dsh-fleet `client/demo.mjs --ws`（回归） | ✓ |
+| dsh-fleet `npm run verify` | 9/9 全绿 ✓ |
+
+**过程中发现并修复（dsh-fleet 侧）**：桥的 `makeWsTextSink` 行导向等待帧内 `\n`，而标准
+ACP-over-WS 客户端（SDK/undici，goose serve 模型）每条消息一整帧、帧尾无换行 → 帧滞留
+buffer、initialize 无响应；dsh-fleet 自有客户端因发送 `json+"\n"` 未暴露。已在其仓库
+`fix/acp-ws-standard-ws-clients` 分支修复（帧 payload 归一行尾换行），双向客户端验证通过。
+**教训**：契约测试必须用与生产同构的标准客户端（这正是 acp-smoke 存在的意义）。
 
 ## 1. 背景与结论
 
