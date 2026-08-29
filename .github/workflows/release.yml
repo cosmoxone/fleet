@@ -47,7 +47,7 @@ jobs:
         run: pnpm --filter @fleet/app run i18n:compile
 
       - name: Package (zip)
-        run: pnpm --filter @fleet/app exec electron-forge make --targets zip --arch ${{ matrix.arch }}
+        run: pnpm --filter @fleet/app exec electron-forge make --targets @electron-forge/maker-zip --arch ${{ matrix.arch }}
         env:
           ELECTRON_MIRROR: ${{ vars.ELECTRON_MIRROR }}
 
