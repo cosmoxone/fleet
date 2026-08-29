@@ -87,7 +87,7 @@ try {
       .join(', ');
     throw new Error(`entry not found; main.js-like entries: ${hint || '(none)'}`);
   }
-  for (const key of ['.vite/build/main.js', mainEntry]) {
+  for (const key of ['.vite/build/main.js', path.join('.vite', 'build', 'main.js'), mainEntry]) {
     try {
       mainJs = asar.extractFile(asarPath, key).toString('utf8');
       break;
