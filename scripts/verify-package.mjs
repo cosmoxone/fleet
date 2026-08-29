@@ -76,7 +76,26 @@ if (fs.existsSync(resourcesBin)) {
 const asarPath = path.join(resourcesDir, 'app.asar');
 let mainJs = '';
 try {
-  mainJs = asar.extractFile(asarPath, '.vite/build/main.js').toString('utf8');
+  // forge-vite on Windows may store entries with backslash separators
+  const entries = asar.listPackage(asarPath);
+  const normalize = (e) => e.replace(/\\/g, '/').replace(/^\//, '');
+  const mainEntry = entries.find((e) => normalize(e) === '.vite/build/main.js');
+  if (!mainEntry) {
+    const hint = entries
+      .filter((e) => normalize(e).endsWith('/main.js'))
+      .slice(0, 5)
+      .join(', ');
+    throw new Error(`entry not found; main.js-like entries: ${hint || '(none)'}`);
+  }
+  for (const key of ['.vite/build/main.js', mainEntry]) {
+    try {
+      mainJs = asar.extractFile(asarPath, key).toString('utf8');
+      break;
+    } catch {
+      // try the stored entry form next
+    }
+  }
+  if (!mainJs) throw new Error('extract failed for both normalized and stored entry forms');
 } catch (error) {
   console.error(`[2/3] FAIL cannot extract .vite/build/main.js from app.asar: ${error.message}`);
   failures++;
