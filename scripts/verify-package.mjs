@@ -27,7 +27,12 @@ target = path.resolve(target);
 let dir = target;
 if (target.endsWith('.zip')) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fleet-verify-'));
-  execFileSync('unzip', ['-q', target, '-d', tmp]);
+  // Windows runners have bsdtar but no unzip
+  if (process.platform === 'win32') {
+    execFileSync('tar', ['-xf', target, '-C', tmp]);
+  } else {
+    execFileSync('unzip', ['-q', target, '-d', tmp]);
+  }
   dir = fs.readdirSync(tmp, { withFileTypes: true })
     .filter((e) => e.isDirectory())
     .map((e) => path.join(tmp, e.name))[0];
@@ -37,11 +42,16 @@ if (target.endsWith('.zip')) {
   }
 }
 
+// macOS bundles keep resources under <App>.app/Contents/Resources
+const resourcesDir = fs.existsSync(path.join(dir, 'Contents', 'Resources'))
+  ? path.join(dir, 'Contents', 'Resources')
+  : path.join(dir, 'resources');
+
 let failures = 0;
 
 // 1. injected backend binary
 const binName = process.platform === 'win32' ? 'goose.exe' : 'goose';
-const resourcesBin = path.join(dir, 'resources', 'bin', binName);
+const resourcesBin = path.join(resourcesDir, 'bin', binName);
 if (fs.existsSync(resourcesBin)) {
   const size = fs.statSync(resourcesBin).size;
   console.log(`[1/3] OK resources/bin/${binName} (${(size / 1e6).toFixed(1)} MB, sha256 ${sha256(resourcesBin)})`);
@@ -51,7 +61,7 @@ if (fs.existsSync(resourcesBin)) {
 }
 
 // 2. asar fleet markers (note: minification renames functions; string markers survive)
-const asarPath = path.join(dir, 'resources', 'app.asar');
+const asarPath = path.join(resourcesDir, 'app.asar');
 let mainJs = '';
 try {
   mainJs = asar.extractFile(asarPath, '.vite/build/main.js').toString('utf8');

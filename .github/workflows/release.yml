@@ -59,6 +59,7 @@ jobs:
           echo "ZIP_NAME=$(basename "$zip_path")" >> "$GITHUB_ENV"
 
       - name: Triple verification (W4)
+        shell: bash
         run: node scripts/verify-package.mjs "$ZIP_PATH"
 
       - uses: actions/upload-artifact@v4
