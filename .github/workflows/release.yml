@@ -1,0 +1,77 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: linux-x64, platform: linux, arch: x64, runner: ubuntu-latest }
+          - { target: win32-x64, platform: win32, arch: x64, runner: windows-latest }
+          - { target: darwin-arm64, platform: darwin, arch: arm64, runner: macos-latest }
+          - { target: darwin-x64, platform: darwin, arch: x64, runner: macos-15-intel }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies (builds goose-sdk)
+        run: pnpm install --frozen-lockfile
+
+      - name: Inject goose backend binary (hash-pinned)
+        run: pnpm exec tsx runtime/drivers/goose/fetch-goose.ts --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
+
+      - name: Prepare windows CLI tools
+        if: matrix.platform == 'win32'
+        run: node app/scripts/prepare-platform-binaries.js
+        env:
+          ELECTRON_PLATFORM: win32
+
+      - name: Compile i18n catalogs
+        run: pnpm --filter @fleet/app run i18n:compile
+
+      - name: Package (zip)
+        run: pnpm --filter @fleet/app exec electron-forge make --targets zip --arch ${{ matrix.arch }}
+        env:
+          ELECTRON_MIRROR: ${{ vars.ELECTRON_MIRROR }}
+
+      - name: Locate artifact
+        shell: bash
+        run: |
+          zip_path="$(find app/out/make/zip -name 'Fleet-*.zip' | head -1)"
+          echo "ZIP_PATH=$zip_path" >> "$GITHUB_ENV"
+          echo "ZIP_NAME=$(basename "$zip_path")" >> "$GITHUB_ENV"
+
+      - name: Triple verification (W4)
+        run: node scripts/verify-package.mjs "$ZIP_PATH"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_PATH }}
+
+      - name: Attach to draft release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          sha256sum "$ZIP_PATH" > "$ZIP_NAME.sha256"
+          gh release create "${GITHUB_REF#refs/tags/}" --draft --title "${GITHUB_REF#refs/tags/}" || true
+          gh release upload "${GITHUB_REF#refs/tags/}" "$ZIP_PATH" "$ZIP_NAME.sha256" --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}

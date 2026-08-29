@@ -27,6 +27,8 @@ fleet 是多 Agent 调度壳项目。goose 以"拉取 + 引用"方式消费：**
 - 版本三处对齐：壳 manifest = 注入二进制 = `@agentclientprotocol/sdk` / `@aaif/goose-sdk` 协议面
 - 版本矩阵唯一事实源：`runtime/versions.json`
 
+**P3 已落地（2026-08-29）**：`fetch-goose.ts` 下载官方 release 资产（win=zip、darwin/linux=tar.gz，命名矩阵内建于脚本并与 versions.json 交叉校验）→ schema 2 哈希钉扎 → 注入 `app/src/bin`（`--from-file` 供离线/开发注入）；`scripts/verify-package.mjs` 执行 W4 三重验证；CI `.github/workflows/release.yml`（4 目标矩阵 → verify → draft release 带 .sha256）。本地全链路已验：`Fleet-linux-x64-0.1.0.zip` 三重验证通过（注入为本地 1.46.0 开发二进制，CI 注入 1.48.0 官方哈希钉扎版）。
+
 ## 契约 3：壳内 main ↔ renderer（已内部化，非外部契约）
 
 快照后这 36 个 `ipcMain.handle` 是**自有代码的内部接口**，仅作快照自检清单保留（P2 快照落位时核对齐全）：

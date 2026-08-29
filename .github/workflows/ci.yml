@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies (builds goose-sdk)
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (core + runtime + app)
+        run: |
+          pnpm typecheck
+          pnpm --filter @fleet/app run typecheck
+
+      - name: Core + driver tests
+        run: pnpm test
+
+      - name: App tests
+        run: pnpm --filter @fleet/app run test:run

@@ -8,7 +8,9 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "node-cli": "tsx core/cli.ts"
+    "node-cli": "tsx core/cli.ts",
+    "fetch-goose": "tsx runtime/drivers/goose/fetch-goose.ts",
+    "verify-package": "node scripts/verify-package.mjs"
   },
   "dependencies": {
     "@agentclientprotocol/sdk": "1.3.0"
