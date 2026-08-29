@@ -1,0 +1,4 @@
+provider: github
+owner: fleet
+repo: fleet
+updaterCacheDirName: fleet-updater
