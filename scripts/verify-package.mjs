@@ -27,9 +27,12 @@ target = path.resolve(target);
 let dir = target;
 if (target.endsWith('.zip')) {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'fleet-verify-'));
-  // Windows runners have bsdtar but no unzip
+  // Windows runners have bsdtar but no unzip; bsdtar chokes on drive-letter
+  // paths ("D:..." parsed as remote host), so copy the zip in and use
+  // relative paths only
   if (process.platform === 'win32') {
-    execFileSync('tar', ['-xf', target, '-C', tmp]);
+    fs.copyFileSync(target, path.join(tmp, 'pkg.zip'));
+    execFileSync('tar', ['-xf', 'pkg.zip'], { cwd: tmp });
   } else {
     execFileSync('unzip', ['-q', target, '-d', tmp]);
   }
