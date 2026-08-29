@@ -13,7 +13,8 @@ core/      多 Agent 调度核心（纯 TS，零 Electron 依赖，后端无关�
   router.ts    window/session → node 绑定解析
   policy.ts    调度策略接口（v1：静态绑定）
   driver.ts    ACP 驱动接口（v1 最小面，goose 单实现）
-app/       Electron 壳（P2：一次性快照自 goose ui/desktop + fleet 改动）
+app/       Electron 壳（快照自 goose ui/desktop @ f4066f1，品牌 Fleet，locale 子集 en/zh-CN/zh-TW）
+vendor/    快照依赖：goose-sdk（ACP SDK 源码）+ goose-binary 平台占位包
 runtime/   后端引用层：versions.json、drivers/goose/、acp-smoke/ 契约测试
 docs/      设计文档（P4 迁入脱敏版）
 ```
@@ -24,6 +25,11 @@ docs/      设计文档（P4 迁入脱敏版）
 pnpm install
 pnpm test              # core + runtime 单测
 pnpm node-cli -- --help
+
+# 桌面壳（app/）
+pnpm --filter @fleet/app typecheck
+pnpm --filter @fleet/app test:run
+GOOSE_BINARY=$(command -v goose) pnpm --filter @fleet/app start   # 本地跑通需 goose 二进制
 ```
 
 许可：Apache-2.0（`LICENSE`）；归属声明见 `NOTICE.md`；契约治理见 `INTEGRATION.md`。

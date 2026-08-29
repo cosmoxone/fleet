@@ -53,6 +53,16 @@ open-directory-in-explorer, launch-app, refresh-app, close-app
 
 **永不进入仓库**：Rust `crates/`（后端 = release 二进制注入）、上游 `documentation/` 视频
 
+## P2 落位记录（2026-08-29，commit ff7ad73）
+
+- 快照执行：`ui/desktop` → `app/`、`ui/sdk` → `vendor/goose-sdk`（workspace 成员）、`ui/goose-binary/*` 占位包 → `vendor/goose-binary/`；
+- SDK 构建输入快照：`acp-schema.json` / `acp-meta.json` 自 goose `crates/goose/` vendored 进 `vendor/goose-sdk/`（原 .gitignore 忽略项改为跟踪）；
+- 品牌改造范围 = OS 面（productName/exe/包 id、`fleet://`、菜单+zh 映射、标题、dialog、tray、更新源）；agent 面的 "goose" 字样按 nominative use 保留；
+- locale 子集 = en / zh-CN / zh-TW；
+- **设计偏差（有意）**：① `gooseServe.ts` 暂不经 `core/driver`（其含就绪等待/诊断/TLS 指纹捕获等富逻辑，driver.provision 仅薄 spawn；待第二后端接入时再评估抽象收口）② 应用图标沿用上游（P3 资产轮换）③ renderer 深度品牌（About 页文案等）未做；
+- 验证：tsc ✓、693 app 测试 ✓、`electron-forge start`（Linux/无沙箱环境）✅——`fleet://` 注册、goosed spawn + TLS 指纹钉扎、healthCheck 绿、`GOOSE_USER_DATA_DIR` 隔离、版本 0.1.0；
+- 遗留人工项：连接真实远程节点的「New Chat on Node…」全链路需在有远程节点的桌面环境手测（逻辑已由 fork v0.6 验证 + 单测覆盖）。
+
 ## 升级流程
 
 1. 后端升级：改 `versions.json` → 拉新 release 二进制 → 契约 1/2 冒烟 → 出壳版本（低成本，可频繁）
