@@ -19,6 +19,20 @@ runtime/   后端引用层：versions.json、drivers/goose/、acp-smoke/ 契约�
 docs/      设计文档（P4 迁入脱敏版）
 ```
 
+## 安装与使用
+
+从 GitHub Releases 下载对应平台的 `Fleet-<platform>-<arch>.zip`，解压即用（每个 release 附
+`.sha256` 校验文件；内含官方 goose 二进制，见 NOTICE）。远程节点侧运行 stock goose：
+
+```bash
+GOOSE_SERVER__SECRET_KEY=<secret> goose serve --host 0.0.0.0 --port 3284 --tls
+```
+
+壳内「设置 → 共享 → Fleet Nodes」添加节点（URL/secret/TLS 指纹），菜单「New Chat on Node…」
+按节点开窗。命令行管理节点：`pnpm node-cli -- --help`。
+
+> 本产品编排 goose agents；goose 及其商标归各自所有者，Fleet 与 goose 项目无隶属关系。
+
 ## 开发
 
 ```bash
