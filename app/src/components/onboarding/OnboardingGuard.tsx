@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { useConfig } from '../ConfigContext';
 import { useModelAndProvider } from '../ModelAndProviderContext';
 import { acpListProviderDetails, acpReadDefaults, acpSaveDefaults } from '../../acp/providers';
+import { getAcpDriver } from '../../acp/acpConnection';
+import { isMethodNotSupportedError } from '../../acp/errors';
 import { Goose } from '../icons';
 import { Button } from '../ui/button';
 import ProviderSelector from './ProviderSelector';
@@ -65,6 +67,19 @@ export default function OnboardingGuard({ children }: OnboardingGuardProps) {
   const checkProvider = async (retries = 3, delay = 1000) => {
     setIsCheckingProvider(true);
     setCheckProviderError(false);
+    // Non-goose backends (e.g. dsh) do not implement goose's unstable
+    // defaults/providers extension face: skip onboarding instead of
+    // misreporting a connection error (D7 degradation matrix).
+    try {
+      const driver = await getAcpDriver();
+      if (driver !== 'goose') {
+        setHasProvider(true);
+        setIsCheckingProvider(false);
+        return;
+      }
+    } catch {
+      // fall through to the default provider check
+    }
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         const { providerId: provider } = await acpReadDefaults();
@@ -90,6 +105,13 @@ export default function OnboardingGuard({ children }: OnboardingGuardProps) {
         setIsCheckingProvider(false);
         return;
       } catch (error) {
+        if (isMethodNotSupportedError(error)) {
+          // Backend lacks the goose defaults face (non-goose driver):
+          // this is not a connectivity problem — skip onboarding.
+          setHasProvider(true);
+          setIsCheckingProvider(false);
+          return;
+        }
         console.error(`Error checking provider (attempt ${attempt + 1}/${retries + 1}):`, error);
         if (attempt < retries) {
           await new Promise((resolve) => setTimeout(resolve, delay));
