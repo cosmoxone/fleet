@@ -232,3 +232,33 @@ describe('fleetd permission endpoints + session reuse (M1 remainder)', () => {
     }
   });
 });
+
+describe('companion page (M1 face ④ wiring)', () => {
+  it('serves the companion HTML behind token auth (header or ?token=)', async () => {
+    const noAuth = await fetch(`http://127.0.0.1:${fleetd.port}/companion`);
+    expect(noAuth.status).toBe(401);
+
+    const viaQuery = await fetch(`http://127.0.0.1:${fleetd.port}/companion?token=${fleetd.token}`);
+    expect(viaQuery.status).toBe(200);
+    const html = await viaQuery.text();
+    expect(html).toContain('fleet companion');
+    expect(html).toContain('/permissions/');
+
+    const viaHeader = await fetch(`http://127.0.0.1:${fleetd.port}/companion`, {
+      headers: { 'x-secret-key': fleetd.token },
+    });
+    expect(viaHeader.status).toBe(200);
+  });
+
+  it('SSE /events accepts query token (EventSource constraint)', async () => {
+    const res = await fetch(`http://127.0.0.1:${fleetd.port}/events?token=${fleetd.token}`);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('text/event-stream');
+    await res.body!.cancel();
+  });
+
+  it('does NOT relax query auth for other routes', async () => {
+    const res = await fetch(`http://127.0.0.1:${fleetd.port}/status?token=${fleetd.token}`);
+    expect(res.status).toBe(401);
+  });
+});

@@ -3,6 +3,7 @@ import { randomBytes } from 'node:crypto';
 import { loadBridgeNodes, findBridgeNode } from '../../bridge/src/nodes';
 import { dispatchToNode, openBridgeSession, type BridgeSession, type TurnResult } from '../../bridge/src/dispatch';
 import { PermissionHub } from './permissionHub';
+import { companionPageHtml } from './companion';
 
 /**
  * FLEET-HUB-001 M1 (first slice) — fleetd: the headless fleet kernel service.
@@ -130,8 +131,19 @@ export function createFleetd(options: FleetdOptions): Promise<FleetdHandle> {
 
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', 'http://127.0.0.1');
-    if (req.headers['x-secret-key'] !== token) {
+    // Companion/SSE surfaces may authenticate via ?token= (EventSource cannot
+    // set headers); everything else requires the X-Secret-Key header.
+    const queryAuthOk =
+      (url.pathname === '/events' || url.pathname === '/companion') &&
+      url.searchParams.get('token') === token;
+    if (req.headers['x-secret-key'] !== token && !queryAuthOk) {
       sendJson(res, 401, { error: 'unauthorized' });
+      return;
+    }
+    if (req.method === 'GET' && url.pathname === '/companion') {
+      const html = companionPageHtml();
+      res.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+      res.end(html);
       return;
     }
     if (req.method === 'GET' && url.pathname === '/status') {
