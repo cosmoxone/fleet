@@ -41,7 +41,7 @@
 | ③ ACP server | **任何 ACP client UI/壳**（goose desktop、dsh-orchestra、dsh-fleet web、第三方 ACP 客户端） | **契约 1 同构**（`/status` + `/acp?token=` + 406 语义 + TLS 指纹） | **本设计新增** | fleet 对外呈现为**单节点**："fleet-hub (aggregating N nodes)"；与 dsh-fleet 的 `acp-ws.mjs` 桥互为镜像（桥=把 1 个 stdio agent 暴露为 WS；fleet serve=把 N 个 WS agent 聚合为 1 个 WS 面） |
 | ④ companion | 手机浏览器 | 契约 5（`/api/v1`） | mobile design 已设计 | 事件桥天然复用 fleetd 事件总线 |
 | ⑤ TUI/CLI | 终端 | node-cli 扩展 | 远期 | `node-cli` 演进 |
-| **⑥ stdio ACP agent**（v0.3 新增） | **任何 spawn 型宿主**：acpx 生态（openclaw acpx / dsh subagent-acp / omnigent `--from-openclaw`） | ACP over stdio（`fleet agent [--node <slug>]`） | v0.3 新增 | **`openclaw acp` 的架构镜像**：同一聚合内核包成单进程 stdio agent；双模式——`--node X` 单节点透传 / 无参 hub 聚合（与 P12 同源）；配合 `fleet acpx-export`（见 §4bis）可被 acpx 宿主一键导入 |
+| **⑥ stdio ACP agent**（v0.3 新增） | **任何 spawn 型宿主**：acpx 生态（openclaw acpx / dsh subagent-acp / omnigent `--from-openclaw`） | ACP over stdio（`fleet agent [--node <slug>]`） | v0.3 新增 | **`openclaw acp` 的架构镜像**：同一聚合内核包成单进程 stdio agent；双模式——`--node X` 单节点透传 / 无参 hub 聚合（与 P12 同源）；配合 `fleet acpx-export`（见 §4bis）可被 acpx 宿主一键导入。**多节点语义（v0.5 澄清）分三层**：①宿主层（v1 主路径）——acpx-export 一节点一条目，宿主 spawn N 进程管 N 节点（acpx 原生模式，dsh 10-provider 级联同构）；②会话层（可选 +0.5 天）——hub 模式多次 session/new，路由键 `_meta.fleet.node = <slug>`（ACP 扩展点，同 goose unstable 机制），无 _meta 落默认节点；③提示层（v2 候选）——"@slug 前缀"文本路由。**单会话内多节点并行编排不属面⑥**（ACP 单会话=单对话流）——那是面② MCP 桥的本职分工 |
 
 **面③ 是本设计的增量**，语义要点：
 - **initialize**：fleet 以 agent 身份应答（agentInfo `fleet-hub`）；`clientCapabilities` 透传给被选节点；
@@ -181,3 +181,4 @@
 | v0.2 | 2026-09-15 | review 修正（见 `docs/progress/2026-09-15_hub-design-review.md`）：§2 面③ 补"未知方法透明转发"与"会话生命周期镜像"（最小版前提）；§6 补估时（M2=2-3 周，隐藏工作量显式化）；§7 补 settings 一致性与 hop advisory 两风险；§8 P7 关闭、P11 标注与 P5 同源 |
 | v0.3 | 2026-09-15 | 新增 §4bis 北向编排者接入：命名规范（name/slug/`fleet/<slug>` 三层）；编排者矩阵（goose/hermes/openclaw/opencode/dsh/workbuddy/omnigent/编辑器 → 面②/③/⑥，判据=零 fleet 代码）；**面⑥ stdio ACP agent**（`fleet agent [--node]`，openclaw acp 架构镜像）+ `fleet acpx-export`（fleet 由 acpx 消费者变生产者）。**同日 review 补**：M2-alt 里程碑（面⑥ 2–4 天、轻于面③、可先行）；命名细则外移 `node-naming-spec.md`（FLEET-NAMING-001） |
 | v0.4 | 2026-09-15 | **V1 核实落账**：dsh-orchestra/dsh-fleet web 均非 ACP client（面③无近期消费者）→ 里程碑重排序：**M2-alt（面⑥+acpx-export）先行、M2（面③）后置**（dsh 本体即 stdio 消费者实证）；M0 同日完成（goose CLI→桥→dsh 全链路） |
+| v0.5 | 2026-09-15 | 面⑥ 多节点语义澄清（用户问询触发）：三层模型——宿主层（acpx-export 一节点一条目，v1 主路径，与 dsh 10-provider 级联同构）/ 会话层（`_meta.fleet.node` 路由键，可选）/ 提示层（@slug 文本路由，v2 候选）；并明确单会话并行编排归面② 桥（分工边界） |
