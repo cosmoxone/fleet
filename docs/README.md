@@ -8,7 +8,7 @@
 - **F-2 驱动能力 catalog（S1–S5）**：设计 v0.3 实施 + 5B-lite 点检通过并合并（`64b0d68`）——单一源/codegen+CI 防漂移/UI 预门控/reconnectPolicy 修复（断线自动新会话）/节点 slug；测试 64+705 全绿
 - main 领先 origin 25 commits（**未推送**，推送触发 release 流水线，时机待定）
 
-**已设计待实施**：ORCH-001 桥（M0 试点 0.5–1 天）‖ V1 第三方 UI 能力核实 → F-12 fleetd 或 F-3 stdio 驱动；HERMES/OPENCLAW 接入（catalog 就绪后"填表即接入"）
+**M0 桥试点已完成并合并（2026-09-15 晚）**：goose CLI 经 fleet-bridge 扩展指挥 dsh 节点全链路通（GOOSE-TO-FLEET-OK）。**下一步**：V1 第三方 UI 能力核实 → F-12 fleetd（M1 含桥 attached 模式）或 F-3 stdio 驱动；HERMES/OPENCLAW 接入（catalog 就绪，填表即接入）
 
 **后续路径**：`planning/fleet-roadmap-v2.md`（v1.5：F-1…F-12 + 依赖图 + §9 周历）；
 精益执行顺序见 `progress/2026-09-15_hub-design-review.md` §8
