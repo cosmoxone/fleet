@@ -42,6 +42,7 @@
 | [planning/fleet-roadmap-v2.md](./planning/fleet-roadmap-v2.md) | — | v2 特性规划 v1.5 |
 | [progress/2026-09-15_hub-design-review.md](./progress/2026-09-15_hub-design-review.md) | — | 设计网络四维评审记录 |
 | [progress/2026-09-15_5b-acceptance-retrospective.md](./progress/2026-09-15_5b-acceptance-retrospective.md) | — | **5B 验收全历程复盘（P0-P4 排障 / M1-M8 方法论 / L1-L10 教训 / agent 最佳实践 8 条）** |
+| [progress/2026-09-15_m0-bridge-retrospective.md](./progress/2026-09-15_m0-bridge-retrospective.md) | — | **M0 桥试点复盘（P0-P7 / SDK 试错 / goose 配置字段坑 / M1'-M8' 方法论）** |
 
 ## fork 时期（历史工件，快照基线 `0e17bf7..f4066f1`）
 
