@@ -1,5 +1,18 @@
 # fleet 文档索引
 
+## 当前状态速览（2026-09-15）
+
+**代码已实现**：
+- **main**：P0–P5 全部落定（仓库骨架+契约治理 / `core/` 调度核心 35 测试 / `runtime/` goose 驱动 + acp-smoke / P2 快照+品牌 / P3 打包管线+CI release / P4 文档 / P5 图标）；v0.1.0 release 管线跑通
+- **`feature/dsh-driver`**（领先 main 6 commits）：dsh 驱动 c1–c3 **代码全部完成**，自动化验证全绿（单测 42+699、契约冒烟、真实 LLM E2E）——**唯一阻塞：5B 桌面人工验收（约 5 分钟）→ 通过即合并**（交接单：`features/dsh-driver-session-report.md` §5B/§6）
+- 2026-09-14/15 会话：纯设计产出（下表 9 新 + 2 改，**未提交**），零代码变更
+
+**已设计待实施**（参考设计，见下表）：ORCH-001 桥 / HUB-001 fleetd / NAMING-001 / HERMES-001 / OPENCLAW-001
+
+**后续路径**：`planning/fleet-roadmap-v2.md`（v1.5：F-1…F-12 + 依赖图 + §9 周历）；
+精益执行顺序见 `progress/2026-09-15_hub-design-review.md` §8
+（**D-1 验收合并 → F-2 catalog+命名 → M0 桥试点 → 按数据推进**）
+
 谱系说明：fork 时期（goose fork 内做多节点扩展）→ 壳项目时期（本仓库）。
 当前有效的契约治理文档是根目录 **INTEGRATION.md**（版本矩阵见 `runtime/versions.json`）。
 
@@ -8,6 +21,25 @@
 | 文档 | 内容 | 状态 |
 |---|---|---|
 | [REFACTORING.md](./REFACTORING.md) | 从 goose fork 到壳项目的重构设计 v1.1（定位、ACP 驱动模型、P0–P5 路线、命名、合规） | **现行** |
+
+## v2 参考设计与研究笔记（2026-08-30 起，待评审）
+
+| 文档 | 特性 ID | 内容 |
+|---|---|---|
+| [features/dsh-harness-driver.md](./features/dsh-harness-driver.md) | — | dsh 驱动设计 v1.1（已实施 c1-c3）+ 冒烟记录 |
+| [features/dsh-driver-session-report.md](./features/dsh-driver-session-report.md) | — | dsh 交接单（5A/5B/§6） |
+| [features/mobile-companion-design.md](./features/mobile-companion-design.md) | FLEET-MOBILE-001 | 移动端伴侣参考设计 v0.1 |
+| [features/acp-mcp-bridge-design.md](./features/acp-mcp-bridge-design.md) | FLEET-ORCH-001 | ACP→MCP 编排桥（fleetd 面②）v0.3 |
+| [features/fleet-core-service-design.md](./features/fleet-core-service-design.md) | FLEET-HUB-001 | fleetd 内核服务/多前端（六面 + 北向矩阵/命名）v0.3 |
+| [features/node-naming-spec.md](./features/node-naming-spec.md) | FLEET-NAMING-001 | 节点与 Agent 命名规范 v0.1 |
+| [features/hermes-driver-design.md](./features/hermes-driver-design.md) | FLEET-HERMES-001 | hermes 接入技术方案 v1.0 |
+| [features/openclaw-driver-design.md](./features/openclaw-driver-design.md) | FLEET-OPENCLAW-001 | openclaw 接入技术方案 v1.1 |
+| [research/berd-notes.md](./research/berd-notes.md) | — | Block berd 对照（A1–A7） |
+| [research/nf-board-notes.md](./research/nf-board-notes.md) | — | nf-board（vibe-kanban）对照（N1–N5）v1.0 |
+| [research/orchestration-ecosystem-notes.md](./research/orchestration-ecosystem-notes.md) | — | 生态对照与协同方法谱系 v1.1 |
+| [research/remote-node-operation-notes.md](./research/remote-node-operation-notes.md) | — | 操作远端节点六机制谱系 v1.2 |
+| [planning/fleet-roadmap-v2.md](./planning/fleet-roadmap-v2.md) | — | v2 特性规划 v1.5 |
+| [progress/2026-09-15_hub-design-review.md](./progress/2026-09-15_hub-design-review.md) | — | 设计网络四维评审记录 |
 
 ## fork 时期（历史工件，快照基线 `0e17bf7..f4066f1`）
 

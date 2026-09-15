@@ -1,6 +1,6 @@
 # fleet 壳 v2 特性规划（对齐统一客户端设计）
 
-> 文档：`docs/planning/fleet-roadmap-v2.md` · **v1.1**（2026-08-30 19:09 review 细化版）
+> 文档：`docs/planning/fleet-roadmap-v2.md` · **v1.2**（2026-09-14 增补：nf-board 引用 + F-11 候选；v1.1 = 2026-08-30 19:09 review 细化版）
 > 输入依据：dsh-fleet `docs/unified-client.md` **v2.4**（权威）、`docs/roadmap.md` v1.1（4.7/4.8/0.9）；
 > wb-knowledge `docs/requirements.md` v2.7（FR-39/40/41）、`docs/architecture.md` v1.9（§6/§7）、
 > `docs/strategy-plain.md` v1.4；本仓既有决策清单 `docs/progress/2026-08-30_1738-*.md` §4（D-1~D-8）。
@@ -59,9 +59,10 @@
 | # | 特性 | 内容 | 状态/估时 | 完成判据 |
 |---|---|---|---|---|
 | F-1 | dsh 驱动合并 | 5B 验收 → §6 合并 | **待人工（D-1）** | 交接单 5B 全勾 + main 合并 |
-| F-2 | **驱动能力 catalog**（=A2 升格） | 见 §3.1 schema 草案 | 合并后 1–2 天 | 判据见 §3.1 末 |
-| F-3 | **本地 stdio 桥驱动**（=A1） | 接 @agentclientprotocol 官方桥（codex/claude）；spike → 视 P3 排期 | F-2 后 spike 1–2 天 | spike：stdio driver + acp-smoke 直连桥进程跑通一个真实 agent 会话 |
+| F-2 | **驱动能力 catalog**（=A2 升格） | 见 §3.1 schema 草案；**含节点命名 slug schema**（`node-naming-spec.md`，0.5–1 天，同属节点元数据面一次变更） | 合并后 1–2 天（+命名 0.5–1 天） | 判据见 §3.1 末 |
+| F-3 | **本地 stdio 桥驱动**（=A1） | 接 @agentclientprotocol 官方桥（codex/claude）；**spike 范围含远程传输评估**（`'ssh'` transport / ssh 命令模板 / 隧道回环物化，`docs/research/nf-board-notes.md` N1）；stdio 注册表格式参照/兼容 OpenClaw acpx（转换器隔离，`docs/research/remote-node-operation-notes.md` §3） | F-2 后 spike 1–2 天 | spike：stdio driver + acp-smoke 直连桥进程跑通一个真实 agent 会话 |
 | F-4 | 快照刷新治理 | 定期刷 goose ui/desktop 快照（INTEGRATION 既有流程）；插件兼容验证纳入回归 | 例行（每次快照刷新 +0.5 天回归） | 快照刷新 PR 含 fleet-nodes/wb 插件兼容验证清单 |
+| F-11 | **ACP→MCP 编排桥**（候选，v1.2 新增） | agent-native 舰队指挥：任何 MCP agent 经桥 dispatch 节点（复用 core/runtime；A2 catalog 第四消费方；F-8 首发包候选） | 参考设计 v0.3 待评审（`docs/features/acp-mcp-bridge-design.md`：P7 已落定=桥为 FLEET-HUB-001 面②；P8–P10 待评审） | 试点切片 0.5–1 天，判据见设计文档 §10 |
 
 #### 3.1 F-2 schema 草案（R3）
 
@@ -117,13 +118,14 @@ interface DriverCapabilities {
 | F-6 | **sidecar 集成 = 节点零号** | 按 §4 注册模型把 sidecar 注册为本地节点（探活/会话/派发语义与远端统一） | F-5 后 1 周 | **依赖 S0 自建件**；`@wb/dsh-sidecar-host` 发布后替换（A11 六决策对齐，P2） |
 | F-7 | 知识注入派发钩子（CU1 预留） | 派发 prompt 上下文可携带 kb 引用（走 kb_search 工具面，不新增协议） | ~2 天 | 检索本体在 wb 侧；本仓只做拼装钩子 |
 | F-8 | **内核共享包化** | F-2/F-3/F-5/F-6 苦活按 §8.4 下沉 `@cosmoxone/*`（或 P2 定名）；CI 版本矩阵校验两壳契约一致；共享包覆盖率度量（目标 80%+） | 伴随各特性 | 防漂移红线：新增苦活只进包 |
+| F-12 | **fleetd 内核服务 / 多前端**（候选，v1.4 新增） | 编排下沉 headless 服务，六面消费：Electron UI（面①）/ MCP 桥=面②（FLEET-ORCH-001）/ **fleet serve ACP 面③**（任何 ACP client UI——dsh-orchestra、dsh-fleet web、goose desktop——把 fleet 当单节点接入）/ companion（面④）/ CLI（面⑤）/ **面⑥ stdio agent + acpx-export**（v0.3，北向编排者矩阵与命名规范见 §4bis）；L0-L2 分层与 M0-M4 见 `fleet-core-service-design.md`（FLEET-HUB-001） | 参考设计 v0.3 待评审；M1-M2 对齐 F-8 节奏 | M2：acp-smoke 反向打 fleet serve 通过 + 第三方 UI 添加 fleet 节点开窗成功 |
 
 ### 轨道 ③：分发与移动（CU2 前置 + 手机桥）
 
 | # | 特性 | 内容 | 估时 | 说明 |
 |---|---|---|---|---|
 | F-9 | 分发基建移植 | electron-updater/签名/公证/HarnessRuntime 布局（dsh-desktop 清单，MIT+出处标注） | 1–2 周 | fleet 壳自身受益（现无更新器）；CU2 前置 |
-| F-10 | 移动端 companion（M1-M3） | 架构遵循本仓 `mobile-companion-design.md`（契约 5：舰队+权限应答语义） | M1 ~1 周 | **移植口径（R8）**：dsh-desktop 桥是"harness URL 转发"语义，非我们的舰队语义——只移植其工程件（QR 配对 TTL/隧道 provider/mux 重连/body cap），**API 面按契约 5 自建** |
+| F-10 | 移动端 companion（M1-M3） | 架构遵循本仓 `mobile-companion-design.md`（契约 5：舰队+权限应答语义）；配对可升级 SPAKE2、跨公网可评估 WebRTC 直连（`docs/research/nf-board-notes.md` N2/N5） | M1 ~1 周 | **移植口径（R8）**：dsh-desktop 桥是"harness URL 转发"语义，非我们的舰队语义——只移植其工程件（QR 配对 TTL/隧道 provider/mux 重连/body cap），**API 面按契约 5 自建** |
 
 ### 依赖图
 
@@ -133,6 +135,7 @@ F-1(dsh合并) ──► F-2(catalog) ──► F-3(stdio驱动 spike→排期)
                     ├──► F-10(移动端 M1;需 F-9 部分件)
                     └──► F-5(CU0 骨架,待P1) ──► F-6(节点零号) ──► F-7(kb注入钩子)
 F-8(共享包化) 伴随 F-2/F-3/F-5/F-6 持续进行
+F-11(编排桥,候选) 依赖 F-2(catalog)；为 F-8 首发包候选
 ```
 
 ## 4. 本地运行时注册模型（v1.1 新增，P5 决策载体）
@@ -229,3 +232,7 @@ W5+  F-9 分发基建 ──► F-10 M1(试点切片可随时插队)
 |---|---|---|
 | v1.0 | 2026-08-30 | 初稿：生态位定案/D-1~D-8 调和/三轨 F-1~F-10/P1-P4/纪律风险 |
 | v1.1 | 2026-08-30 | review 细化（R1-R12）：S0 新增与 sidecar 自建降级；§4 本地运行时注册模型（P5）；F-2 schema 草案；F-5 落点/安全子项/两层估时；§5 追溯矩阵；§6 负面清单（含 wb 插件 token 口径）；§7 验证策略 L0-L3 与 P6；决策点补分支；§9 周历；事实注脚（Electron 43/桥行数） |
+| v1.2 | 2026-09-14 | 增补：nf-board 研究笔记引用（F-3 spike 含远程传输评估 N1；F-10 配对/隧道 N2/N5）；新增 F-11 ACP→MCP 编排桥（候选，指向 FLEET-ORCH-001 参考设计 v0.1，P7–P10）；依赖图与 §3 轨道① 相应更新 |
+| v1.3 | 2026-09-14 | F-3 增补：stdio 注册表格式参照/兼容 OpenClaw acpx（依据 `docs/research/remote-node-operation-notes.md` §3-D，转换器隔离） |
+| v1.4 | 2026-09-15 | 新增 F-12 候选（fleetd 内核服务/多前端，指向 `fleet-core-service-design.md` FLEET-HUB-001 v0.1；桥 = 其面②，FLEET-ORCH-001 同日升 v0.3 对齐）；F-11 依赖关系不变 |
+| v1.5 | 2026-09-15 | 一致性对齐（全网 review）：F-11/F-12 行版本引用勘正（桥 v0.3；HUB v0.3 六面含面⑥）；F-2 增补节点命名 slug schema（`node-naming-spec.md` FLEET-NAMING-001，+0.5–1 天）。文档侧同步：openclaw v1.1 / hermes 措辞去序数化（"择一先 spike"）/ remote-node-notes v1.2（L3 勘正落账）/ docs/README 索引更新 |
