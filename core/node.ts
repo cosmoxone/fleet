@@ -9,6 +9,12 @@ export interface FleetNode {
   workingDir?: string;
   /** Backend driver id. Omitted means the default driver. */
   driver?: string;
+  /**
+   * Machine-readable immutable slug (FLEET-NAMING-001). Optional for backward
+   * compatibility: legacy nodes resolve a stable derived slug on read
+   * (`fleetNodeSlug`); persisting happens on the next explicit save.
+   */
+  slug?: string;
 }
 
 export const DEFAULT_DRIVER_ID = 'goose';
@@ -51,4 +57,79 @@ export function validateFleetNode(node: FleetNode): FleetNodeValidationError | n
     }
     return 'urlFormat';
   }
+}
+
+// ─── Node naming (FLEET-NAMING-001 v0.1) ─────────────────────────────────────
+
+/** Reserved slugs that would collide with routing/CLI vocabulary. */
+export const RESERVED_NODE_SLUGS: readonly string[] = [
+  'new',
+  'all',
+  'nodes',
+  'fleet',
+  'local',
+  'default',
+  'agent',
+  'serve',
+];
+
+const SLUG_MAX_LENGTH = 40;
+const SLUG_PATTERN = /^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$/;
+
+/**
+ * Derives a slug suggestion from a display name: lowercase, fold anything
+ * outside [a-z0-9] to '-', trim/collapse separators, cap at 40 chars,
+ * prefix reserved words with 'n-'. Returns '' when nothing derivable
+ * (pure CJK/symbolic names) — callers then require a hand-written slug
+ * or generate a short id (N-D2).
+ */
+export function deriveNodeSlug(displayName: string): string {
+  const folded = displayName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-')
+    .slice(0, SLUG_MAX_LENGTH)
+    .replace(/-+$/g, '');
+  if (!folded) {
+    return '';
+  }
+  if (RESERVED_NODE_SLUGS.includes(folded)) {
+    return `n-${folded}`.slice(0, SLUG_MAX_LENGTH);
+  }
+  return folded;
+}
+
+export function isValidNodeSlug(slug: string): boolean {
+  return SLUG_PATTERN.test(slug) && !RESERVED_NODE_SLUGS.includes(slug);
+}
+
+export function isReservedNodeSlug(slug: string): boolean {
+  return RESERVED_NODE_SLUGS.includes(slug);
+}
+
+/** Generates a short fallback slug for non-derivable names (N-D2). */
+export function generateNodeSlug(): string {
+  const suffix = Math.random().toString(36).slice(2, 8);
+  return `n-${suffix}`;
+}
+
+/**
+ * Resolves the effective slug: persisted slug wins; legacy nodes derive
+ * lazily from the display name (stable: same name → same slug), falling
+ * back to '' when not derivable — consumers should treat '' as
+ * "awaiting explicit slug" rather than synthesizing silently.
+ */
+export function fleetNodeSlug(node: Pick<FleetNode, 'slug' | 'name'>): string {
+  return node.slug ?? deriveNodeSlug(node.name);
+}
+
+/** Canonical cross-face name: `fleet/<slug>` (ACP routing, audit, bridge). */
+export function fleetCanonicalName(slug: string): string {
+  return `fleet/${slug}`;
+}
+
+/** acpx registry key form: `fleet-<slug>` (JSON5 keys / command args). */
+export function acpxKeyForSlug(slug: string): string {
+  return `fleet-${slug}`;
 }

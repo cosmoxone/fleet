@@ -5,7 +5,7 @@
 // Usage:
 //   pnpm node-cli -- list [--file <settings.json>]
 //   pnpm node-cli -- add --name dev-box --url https://192.168.1.11:3284 --secret S \
-//        [--fingerprint AA:BB:...] [--workdir /home/goose/ws] [--driver goose]
+//        [--fingerprint AA:BB:...] [--workdir /home/goose/ws] [--driver goose] [--slug dev-box]
 //   pnpm node-cli -- rename --id <nodeId> --name <newName>
 //   pnpm node-cli -- secret --id <nodeId> --secret S2     # rotate a node secret
 //   pnpm node-cli -- remove --id <nodeId>
@@ -93,13 +93,14 @@ switch (command) {
         ...(options.fingerprint ? { certFingerprint: options.fingerprint } : {}),
         ...(options.workdir ? { workingDir: options.workdir } : {}),
         ...(options.driver ? { driver: options.driver } : {}),
+        ...(options.slug ? { slug: options.slug } : {}),
       });
     } catch (error) {
       console.error(error instanceof Error ? error.message : error);
       process.exit(1);
     }
     saveFleetSettings(file, settings);
-    console.log(`added '${entry.name}' (${entry.id}) -> ${file}`);
+    console.log(`added '${entry.name}' (${entry.id}, slug=${entry.slug}) -> ${file}`);
     break;
   }
 
