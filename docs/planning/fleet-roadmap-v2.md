@@ -118,7 +118,7 @@ interface DriverCapabilities {
 | F-6 | **sidecar 集成 = 节点零号** | 按 §4 注册模型把 sidecar 注册为本地节点（探活/会话/派发语义与远端统一） | F-5 后 1 周 | **依赖 S0 自建件**；`@wb/dsh-sidecar-host` 发布后替换（A11 六决策对齐，P2） |
 | F-7 | 知识注入派发钩子（CU1 预留） | 派发 prompt 上下文可携带 kb 引用（走 kb_search 工具面，不新增协议） | ~2 天 | 检索本体在 wb 侧；本仓只做拼装钩子 |
 | F-8 | **内核共享包化** | F-2/F-3/F-5/F-6 苦活按 §8.4 下沉 `@cosmoxone/*`（或 P2 定名）；CI 版本矩阵校验两壳契约一致；共享包覆盖率度量（目标 80%+） | 伴随各特性 | 防漂移红线：新增苦活只进包 |
-| F-12 | **fleetd 内核服务 / 多前端**（候选，v1.4 新增） | 编排下沉 headless 服务，六面消费：Electron UI（面①）/ MCP 桥=面②（FLEET-ORCH-001）/ **fleet serve ACP 面③**（任何 ACP client UI——dsh-orchestra、dsh-fleet web、goose desktop——把 fleet 当单节点接入）/ companion（面④）/ CLI（面⑤）/ **面⑥ stdio agent + acpx-export**（v0.3，北向编排者矩阵与命名规范见 §4bis）；L0-L2 分层与 M0-M4 见 `fleet-core-service-design.md`（FLEET-HUB-001） | 参考设计 v0.3 待评审；M1-M2 对齐 F-8 节奏 | M2：acp-smoke 反向打 fleet serve 通过 + 第三方 UI 添加 fleet 节点开窗成功 |
+| F-12 | **fleetd 内核服务 / 多前端**（候选，v1.4 新增） | 编排下沉 headless 服务，六面消费：Electron UI（面①）/ MCP 桥=面②（FLEET-ORCH-001）/ **fleet serve ACP 面③**（任何 ACP client UI——dsh-orchestra、dsh-fleet web、goose desktop——把 fleet 当单节点接入）/ companion（面④）/ CLI（面⑤）/ **面⑥ stdio agent + acpx-export**（v0.3，北向编排者矩阵与命名规范见 §4bis）；L0-L2 分层与 M0-M4 见 `fleet-core-service-design.md`（FLEET-HUB-001） | 参考设计 v0.4——**V1 门已过（2026-09-15）**：M2-alt（面⑥）升第一优先、M2（面③）后置；M0 桥试点同日完成 | M2-alt：dsh subagent-acp / omnigent 经 `fleet agent` 消费舰队节点成功；M2 判据后置至出现真实 WS client |
 
 ### 轨道 ③：分发与移动（CU2 前置 + 手机桥）
 

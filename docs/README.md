@@ -8,7 +8,7 @@
 - **F-2 驱动能力 catalog（S1–S5）**：设计 v0.3 实施 + 5B-lite 点检通过并合并（`64b0d68`）——单一源/codegen+CI 防漂移/UI 预门控/reconnectPolicy 修复（断线自动新会话）/节点 slug；测试 64+705 全绿
 - main 领先 origin 25 commits（**未推送**，推送触发 release 流水线，时机待定）
 
-**M0 桥试点已完成并合并（2026-09-15 晚）**：goose CLI 经 fleet-bridge 扩展指挥 dsh 节点全链路通（GOOSE-TO-FLEET-OK）。**下一步**：V1 第三方 UI 能力核实 → F-12 fleetd（M1 含桥 attached 模式）或 F-3 stdio 驱动；HERMES/OPENCLAW 接入（catalog 就绪，填表即接入）
+**M0 桥试点已完成并合并（2026-09-15 晚）**：goose CLI 经 fleet-bridge 扩展指挥 dsh 节点全链路通（GOOSE-TO-FLEET-OK）。**V1 门已过（2026-09-15 晚）**：dsh-orchestra/dsh-fleet web 均非 ACP client → **fleetd 排序修正：M2-alt 面⑥（stdio agent+acpx-export，2–4 天）先行**，M2 面③ 后置；dsh 本体经 subagent-acp 即面⑥ 消费者。**下一步**：F-12 M1（fleetd 最小版+桥 attached）或 M2-alt，二选一启动
 
 **后续路径**：`planning/fleet-roadmap-v2.md`（v1.5：F-1…F-12 + 依赖图 + §9 周历）；
 精益执行顺序见 `progress/2026-09-15_hub-design-review.md` §8
@@ -39,6 +39,7 @@
 | [research/nf-board-notes.md](./research/nf-board-notes.md) | — | nf-board（vibe-kanban）对照（N1–N5）v1.0 |
 | [research/orchestration-ecosystem-notes.md](./research/orchestration-ecosystem-notes.md) | — | 生态对照与协同方法谱系 v1.1 |
 | [research/remote-node-operation-notes.md](./research/remote-node-operation-notes.md) | — | 操作远端节点六机制谱系 v1.2 |
+| [research/v1-acp-client-verification.md](./research/v1-acp-client-verification.md) | — | **V1 核实：面③无消费者/面⑥有实证（F-12 排序修正）** |
 | [planning/fleet-roadmap-v2.md](./planning/fleet-roadmap-v2.md) | — | v2 特性规划 v1.5 |
 | [progress/2026-09-15_hub-design-review.md](./progress/2026-09-15_hub-design-review.md) | — | 设计网络四维评审记录 |
 | [progress/2026-09-15_5b-acceptance-retrospective.md](./progress/2026-09-15_5b-acceptance-retrospective.md) | — | **5B 验收全历程复盘（P0-P4 排障 / M1-M8 方法论 / L1-L10 教训 / agent 最佳实践 8 条）** |

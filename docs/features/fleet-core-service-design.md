@@ -1,6 +1,6 @@
 # 特性设计：fleet 内核服务（多前端 ACP 聚合架构，fleetd）
 
-> 特性 ID：`FLEET-HUB-001` · 状态：**参考设计 v0.3 草案，待评审**（2026-09-15；v0.2=review 修正，v0.3 新增面⑥ stdio agent 与北向接入矩阵/命名规范 §4bis）
+> 特性 ID：`FLEET-HUB-001` · 状态：**参考设计 v0.4 草案——V1 门已过：面⑥ 升第一优先（见 `../research/v1-acp-client-verification.md`）**（2026-09-15；v0.2=review 修正，v0.3 新增面⑥ stdio agent 与北向接入矩阵/命名规范 §4bis）
 > 愿景（用户原话归纳）：**fleet 有 UI 外壳，也有 ACP 聚合插件/服务，支持多种前端——
 > 其他 UI（dsh-orchestra、dsh-fleet web）或 CLI/agent 皆可消费同一舰队。**
 > 关系：**吸收并升维 FLEET-ORCH-001**（ACP→MCP 桥 = 本架构的面②，见 §4 对齐）；
@@ -180,3 +180,4 @@
 | v0.1 | 2026-09-15 | 初稿：三层架构（L0 内核/L1 fleetd/L2 五面）；面③ ACP server（契约 1 server 侧 + passthrough 路由 + catalog 投影）；与 FLEET-ORCH-001 对齐（桥=面②，standalone/attached 双模式）；M0-M4 路径；P11-P14 |
 | v0.2 | 2026-09-15 | review 修正（见 `docs/progress/2026-09-15_hub-design-review.md`）：§2 面③ 补"未知方法透明转发"与"会话生命周期镜像"（最小版前提）；§6 补估时（M2=2-3 周，隐藏工作量显式化）；§7 补 settings 一致性与 hop advisory 两风险；§8 P7 关闭、P11 标注与 P5 同源 |
 | v0.3 | 2026-09-15 | 新增 §4bis 北向编排者接入：命名规范（name/slug/`fleet/<slug>` 三层）；编排者矩阵（goose/hermes/openclaw/opencode/dsh/workbuddy/omnigent/编辑器 → 面②/③/⑥，判据=零 fleet 代码）；**面⑥ stdio ACP agent**（`fleet agent [--node]`，openclaw acp 架构镜像）+ `fleet acpx-export`（fleet 由 acpx 消费者变生产者）。**同日 review 补**：M2-alt 里程碑（面⑥ 2–4 天、轻于面③、可先行）；命名细则外移 `node-naming-spec.md`（FLEET-NAMING-001） |
+| v0.4 | 2026-09-15 | **V1 核实落账**：dsh-orchestra/dsh-fleet web 均非 ACP client（面③无近期消费者）→ 里程碑重排序：**M2-alt（面⑥+acpx-export）先行、M2（面③）后置**（dsh 本体即 stdio 消费者实证）；M0 同日完成（goose CLI→桥→dsh 全链路） |
