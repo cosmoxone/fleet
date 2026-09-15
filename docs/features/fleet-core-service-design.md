@@ -185,3 +185,4 @@
 | v0.6 | 2026-09-15 | M2-alt v1 范围裁定：层1 核心+hub 默认节点最小版；层2 `_meta` 路由推迟（无现成消费者会发该键，防规划剧场；键名已定，触发即加） |
 | v0.7 | 2026-09-15 | 层3（@slug 提示路由）**升入 v1**：与层2 不同，它零宿主配合（description 教育即可被 LLM 编排宿主使用）、dsh E2E 本周可验；四护栏（仅注册 slug 剥离/每节点独立后端会话/回流打标/权限透传+prompt 串行）；M2-alt 合计 2.5–4 天 |
 | v0.8 | 2026-09-15 | **M2-alt 实施完成**（分支 feature/m2alt-agent）：agent/ 四件套 + dispatch 强化；单测 21/21；真节点 E2E 双模式通过（透传 AGENT-M2ALT-OK / hub @slug HUB-ROUTE-OK+首块打标）；acpx-export 实测输出。层2 `_meta` 路由维持推迟 |
+| v0.9 | 2026-09-15 | **M1 首切片完成**（分支合并）：fleetd（loopback+token：/status /nodes /dispatch，复用 M0 内核路径）+ 桥 zero-config attached（env/发现文件，hub 失败静默回落 standalone，via 可观测）；E2E 三段（DIRECT/ATTACHED/FALLBACK）；测试 97。余量：权限中枢面④ 扇出、会话管理器、companion 接线（M1 后续） |
