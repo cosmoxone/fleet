@@ -158,4 +158,4 @@ canonical/acpx 键为纯派生函数（`fleet/<slug>`、`fleet-<slug>`），落 
 |---|---|---|
 | v0.1 | 2026-09-15 | 初稿（内部，未发布） |
 | v0.2 | 2026-09-15 | 自评审后发布：schema 补 initializeMeta/onboardingGuard/reconnectPolicy/permissionSurface；codegen 入库+CI 方案；S1-S6 计划与判据；R1-R6 记录 |
-| v0.3 | 2026-09-15 | **实施记录（分支 feature/f2-catalog）**：S1 单一源+校验器（fb534b5）；S2 codegen+CI+手写镜像退场（ca1a9e6）；S4 reconnectPolicy 行为修复=5B F-2 缺口闭环（b7e9354）；S3 路由级预门控+模型栏中性 label（e5698f1）；S5 slug 落地 core/registry/cli（05c14cb）。测试 42→64 / 699→705。偏差：R7 app 表单缓行、R8=S6 后置；合并前建议 5B-lite 真机点检（复盘 L1） |
+| v0.3 | 2026-09-15 | **实施记录（分支 feature/f2-catalog）**：S1 单一源+校验器（fb534b5）；S2 codegen+CI+手写镜像退场（ca1a9e6）；S4 reconnectPolicy 行为修复=5B F-2 缺口闭环（b7e9354）；S3 路由级预门控+模型栏中性 label（e5698f1）；S5 slug 落地 core/registry/cli（05c14cb）。测试 42→64 / 699→705。偏差：R7 app 表单缓行、R8=S6 后置；**5B-lite 真机点检通过**（2026-09-15 19:31：断线 25s→自动新会话无错误屏、F2-S4-OK 响应、路由空态文案 ✓；chatSessionController 恢复错误日志归零）——随点检合并 main |
