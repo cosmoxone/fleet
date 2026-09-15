@@ -127,3 +127,4 @@ ecosystem-notes v1.1。
 | v1.0 | 2026-09-14 | 初稿：六机制谱系（fleet/vk relay/OpenClaw Nodes/acpx/omnigent/ruflo 联邦）；方向×厚度定位图；D/E/F 组合判定（acpx 格式参照、云沙箱临时节点、AIMDS/CASA 思想）；组合策略决策表与风险清单 |
 | v1.1 | 2026-09-15 | 评审勘补：§2 增"fleet 第七个位置"（`fleet serve` 使 fleet 双位：client 位 + D 位；嵌套舰队与 hop 限制延伸）；会话所有权与 dsh-orchestra/dsh-fleet 对接缺口指向 `fleet-core-service-design.md`（FLEET-HUB-001）承接 |
 | v1.2 | 2026-09-15 | §6 勘正（hub-review L3）：五形态统一于**驱动注册表 + A2 catalog**而非"同一契约 1"——stdio 进程形态走驱动 stdio 通道、网络形态走契约 1，统一发生在驱动抽象层 |
+| v1.3 | 2026-09-15 | N1 评估结论落账（F-3 spike 实证）：ssh 远端 = stdio 驱动的 command 模板（`bash -c` wrapper 测试通过），无需独立 `'ssh'` transport 类型；隧道回环物化仍为 app 侧后续增量 |

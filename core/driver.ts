@@ -7,6 +7,12 @@ export interface DriverCapabilities {
   localProvisioning: boolean;
   /** Does initialize carry goose `_meta` capabilities? c2 acpConnection split, made explicit. */
   initializeMeta?: 'goose' | 'standard';
+  /**
+   * Can the Electron desktop shell drive this driver today? stdio spawns are
+   * runtime/CLI-only until the loopback materialization lands (F-3 后续) —
+   * hides the entry from the app dropdown without splitting the registry.
+   */
+  desktopShell?: boolean;
   app?: DriverAppCapabilities;
 }
 

@@ -50,8 +50,8 @@ describe('driver registry', () => {
     expect(() => resolveDriver('nope')).toThrow(/unknown fleet driver/);
   });
 
-  it('lists goose and dsh options', () => {
-    expect(listDriverOptions().map((o) => o.id)).toEqual(['goose', 'dsh']);
+  it('lists registered driver options (goose, dsh, stdio)', () => {
+    expect(listDriverOptions().map((o) => o.id)).toEqual(['goose', 'dsh', 'stdio']);
     expect(gooseDriver.id).toBe('goose');
   });
 });

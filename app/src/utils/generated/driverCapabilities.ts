@@ -32,6 +32,8 @@ export interface FleetDriverCapabilities {
   tlsCertificatePinning: boolean;
   localProvisioning: boolean;
   initializeMeta?: FleetInitializeMeta;
+  /** false = desktop shell cannot drive this driver yet (hidden from dropdown). */
+  desktopShell?: boolean;
   app?: FleetDriverAppCapabilities;
 }
 
@@ -100,6 +102,37 @@ export const DRIVER_CAPABILITY_ENTRIES = {
           "fleetNodes.driver.dsh.noteCancelSilent"
         ]
       }
+    }
+  },
+  "stdio": {
+    "displayName": "Local stdio ACP agent (spawn)",
+    "capabilities": {
+      "protocol": "acp",
+      "transports": [
+        "stdio"
+      ],
+      "tlsCertificatePinning": false,
+      "localProvisioning": true,
+      "initializeMeta": "standard",
+      "app": {
+        "sessionList": false,
+        "sessionResume": false,
+        "sessionRename": false,
+        "onboardingGuard": false,
+        "providers": false,
+        "recipes": false,
+        "schedules": false,
+        "mcpApps": false,
+        "steer": false,
+        "cancel": "request",
+        "reconnectPolicy": "fresh-session",
+        "permissionSurface": "acp-standard",
+        "modelLabel": "local (spawned)",
+        "notes": [
+          "fleetNodes.driver.stdio.noteSpawnedProcess"
+        ]
+      },
+      "desktopShell": false
     }
   }
 } as const;

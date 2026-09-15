@@ -60,7 +60,7 @@
 |---|---|---|---|---|
 | F-1 | dsh 驱动合并 | 5B 验收 → §6 合并 | **待人工（D-1）** | 交接单 5B 全勾 + main 合并 |
 | F-2 | **驱动能力 catalog**（=A2 升格） | **已实施并合并**（2026-09-15：S1 单一源/S2 codegen+CI 防漂移/S3 路由级预门控+模型栏中性 label/S4 reconnectPolicy 修复/S5 slug；S6 后置、app 表单缓行 R7——设计 v0.3 `driver-capability-catalog-design.md`） | **完成**——5B-lite 真机点检通过（自动新会话无错误屏 ✓ 空态 ✓） | 判据达成（§7）：预门控 ✓ / 重连回归 ✓ / D-2 文案 ✓ / codegen CI ✓ / slug 校验 ✓ |
-| F-3 | **本地 stdio 桥驱动**（=A1） | 接 @agentclientprotocol 官方桥（codex/claude）；**spike 范围含远程传输评估**（`'ssh'` transport / ssh 命令模板 / 隧道回环物化，`docs/research/nf-board-notes.md` N1）；stdio 注册表格式参照/兼容 OpenClaw acpx（转换器隔离，`docs/research/remote-node-operation-notes.md` §3） | F-2 后 spike 1–2 天 | spike：stdio driver + acp-smoke 直连桥进程跑通一个真实 agent 会话 |
+| F-3 | **本地 stdio 桥驱动**（=A1） | **spike 已完成并合并（2026-09-15 晚）**：stdio 驱动（spawn+ndjson）+ acpx import-acpx + FleetNode command 形态；**N1 评估结论：ssh=command 模板，零额外传输类型（wrapper 命令实证）**；app 侧回环物化（main spawn+loopback WS）为后续增量（desktopShell:false 门控中）；官方桥（claude/codex）实测待网络环境 | **spike 判据达成**（自食其果 E2E STDIO-DRIVER-OK：驱动消费自家 agent 面）；后续增量：app 回环物化 0.5–1 天 |
 | F-4 | 快照刷新治理 | 定期刷 goose ui/desktop 快照（INTEGRATION 既有流程）；插件兼容验证纳入回归 | 例行（每次快照刷新 +0.5 天回归） | 快照刷新 PR 含 fleet-nodes/wb 插件兼容验证清单 |
 | F-11 | **ACP→MCP 编排桥**（候选，v1.2 新增） | agent-native 舰队指挥：任何 MCP agent 经桥 dispatch 节点（复用 core/runtime；A2 catalog 第四消费方；F-8 首发包候选） | **M0 试点完成并合并（2026-09-15）**：单测 7 + 真节点 E2E（dsh→BRIDGE-M0-OK）+ **goose CLI 消费全链路 GOOSE-TO-FLEET-OK**；设计 v0.4；M1（attached 模式/P8–P10）待 fleetd 决策 | M0 判据全达成；M1 判据见设计文档 |
 

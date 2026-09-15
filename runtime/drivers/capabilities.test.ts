@@ -12,7 +12,15 @@ import { DRIVERS } from './index';
 
 describe('capabilities.json single source (FLEET-CATALOG-001)', () => {
   it('declares exactly the registered drivers', () => {
-    expect(Object.keys(DRIVER_CAPABILITY_ENTRIES).sort()).toEqual(['dsh', 'goose']);
+    expect(Object.keys(DRIVER_CAPABILITY_ENTRIES).sort()).toEqual(['dsh', 'goose', 'stdio']);
+  });
+
+  it('stdio (F-3) declares the spawned-process surface and hides from desktop shell', () => {
+    const entry = DRIVER_CAPABILITY_ENTRIES.stdio!;
+    expect(entry.capabilities.transports).toEqual(['stdio']);
+    expect(entry.capabilities.desktopShell).toBe(false);
+    expect(entry.capabilities.initializeMeta).toBe('standard');
+    expect(appCapabilities(entry.capabilities).reconnectPolicy).toBe('fresh-session');
   });
 
   it('drivers read capabilities from the JSON source', () => {

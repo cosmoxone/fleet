@@ -10,6 +10,14 @@ export interface FleetNode {
   /** Backend driver id. Omitted means the default driver. */
   driver?: string;
   /**
+   * stdio 节点（F-3）：要 spawn 的 ACP agent 命令（acpx 风格）。设置后
+   * `url` 应为空——连接走进程 stdin/stdout 而非 WebSocket。
+   * ssh 远端节点 = command 模板（如 `ssh host -- hermes acp`），零额外传输类型。
+   */
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
+  /**
    * Machine-readable immutable slug (FLEET-NAMING-001). Optional for backward
    * compatibility: legacy nodes resolve a stable derived slug on read
    * (`fleetNodeSlug`); persisting happens on the next explicit save.
@@ -28,11 +36,33 @@ export type FleetNodeValidationError =
   | 'urlProtocol'
   | 'urlBase'
   | 'urlFormat'
-  | 'fingerprintRequiresHttps';
+  | 'fingerprintRequiresHttps'
+  | 'commandRequired'
+  | 'commandAndUrlBothSet'
+  | 'argsNotStrings'
+  | 'envNotStrings';
 
 export function validateFleetNode(node: FleetNode): FleetNodeValidationError | null {
   if (!node.name.trim()) {
     return 'nameRequired';
+  }
+  if (node.command !== undefined) {
+    if (!node.command.trim()) {
+      return 'commandRequired';
+    }
+    if (node.url.trim()) {
+      return 'commandAndUrlBothSet';
+    }
+    if (node.args !== undefined && (!Array.isArray(node.args) || !node.args.every((a) => typeof a === 'string'))) {
+      return 'argsNotStrings';
+    }
+    if (
+      node.env !== undefined &&
+      (typeof node.env !== 'object' || !Object.values(node.env).every((v) => typeof v === 'string'))
+    ) {
+      return 'envNotStrings';
+    }
+    return null;
   }
   if (!node.url.trim()) {
     return null;

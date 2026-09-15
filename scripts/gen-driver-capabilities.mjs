@@ -57,6 +57,8 @@ export interface FleetDriverCapabilities {
   tlsCertificatePinning: boolean;
   localProvisioning: boolean;
   initializeMeta?: FleetInitializeMeta;
+  /** false = desktop shell cannot drive this driver yet (hidden from dropdown). */
+  desktopShell?: boolean;
   app?: FleetDriverAppCapabilities;
 }
 

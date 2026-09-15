@@ -3,7 +3,9 @@
     "displayName": "goose (goose serve, ACP over WebSocket)",
     "capabilities": {
       "protocol": "acp",
-      "transports": ["http-websocket"],
+      "transports": [
+        "http-websocket"
+      ],
       "tlsCertificatePinning": true,
       "localProvisioning": true,
       "initializeMeta": "goose",
@@ -29,7 +31,9 @@
     "displayName": "DeepSeek Harness (dsh-acp-demo via acp-ws bridge)",
     "capabilities": {
       "protocol": "acp",
-      "transports": ["http-websocket"],
+      "transports": [
+        "http-websocket"
+      ],
       "tlsCertificatePinning": true,
       "localProvisioning": false,
       "initializeMeta": "standard",
@@ -53,6 +57,37 @@
           "fleetNodes.driver.dsh.noteCancelSilent"
         ]
       }
+    }
+  },
+  "stdio": {
+    "displayName": "Local stdio ACP agent (spawn)",
+    "capabilities": {
+      "protocol": "acp",
+      "transports": [
+        "stdio"
+      ],
+      "tlsCertificatePinning": false,
+      "localProvisioning": true,
+      "initializeMeta": "standard",
+      "app": {
+        "sessionList": false,
+        "sessionResume": false,
+        "sessionRename": false,
+        "onboardingGuard": false,
+        "providers": false,
+        "recipes": false,
+        "schedules": false,
+        "mcpApps": false,
+        "steer": false,
+        "cancel": "request",
+        "reconnectPolicy": "fresh-session",
+        "permissionSurface": "acp-standard",
+        "modelLabel": "local (spawned)",
+        "notes": [
+          "fleetNodes.driver.stdio.noteSpawnedProcess"
+        ]
+      },
+      "desktopShell": false
     }
   }
 }
