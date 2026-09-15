@@ -8,6 +8,7 @@ import {
   driverCapabilityEntry,
   validateCapabilities,
 } from './capabilities';
+import { DRIVERS } from './index';
 
 describe('capabilities.json single source (FLEET-CATALOG-001)', () => {
   it('declares exactly the registered drivers', () => {
@@ -17,6 +18,15 @@ describe('capabilities.json single source (FLEET-CATALOG-001)', () => {
   it('drivers read capabilities from the JSON source', () => {
     expect(gooseDriver.capabilities()).toEqual(driverCapabilityEntry('goose').capabilities);
     expect(dshDriver.capabilities()).toEqual(driverCapabilityEntry('dsh').capabilities);
+  });
+
+  it('every registered driver has a declaration (registration consistency)', () => {
+    // Adding a driver without a capabilities.json entry must fail loudly
+    // (listDriverOptions reads display names from the JSON).
+    expect([...DRIVERS.keys()].sort()).toEqual(Object.keys(DRIVER_CAPABILITY_ENTRIES).sort());
+    for (const driverId of DRIVERS.keys()) {
+      expect(() => driverCapabilityEntry(driverId)).not.toThrow();
+    }
   });
 
   it('goose declares the goose-full surface', () => {

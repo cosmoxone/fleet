@@ -5,9 +5,11 @@ import { DEFAULT_DRIVER_ID, effectiveDriverId, type FleetNode } from '../../core
 import { driverCapabilityEntry } from './capabilities';
 
 /**
- * Driver registry (core-facing side). The app hosts a mirrored option list in
- * `app/src/utils/fleet.ts` because the Electron app does not import
- * core/runtime (snapshot boundary) — keep both in sync when adding drivers.
+ * Driver registry (core-facing side). The app consumes a generated mirror of
+ * the capability declarations: runtime/drivers/capabilities.json →
+ * scripts/gen-driver-capabilities.mjs → app/src/utils/generated/… (CI checks
+ * drift). Add a driver = register here + declare in capabilities.json +
+ * regenerate; nothing stays hand-synced.
  */
 export const DRIVERS: ReadonlyMap<string, AcpDriver> = new Map([
   [gooseDriver.id, gooseDriver],
