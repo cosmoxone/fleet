@@ -15,6 +15,10 @@ export interface ExternalBackend {
   secret: string;
   certFingerprint?: string;
   workingDir?: string;
+  /** stdio node (F-3): spawn this ACP agent; loopback-materialized in main. */
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
   /** Backend driver serving this URL ('goose' | 'dsh'). Omitted = goose. */
   driver?: string;
   /** Set when this backend comes from a fleet node entry (per-window binding). */

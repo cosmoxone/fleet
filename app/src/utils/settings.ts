@@ -18,6 +18,10 @@ export interface FleetNodeConfig {
   secret: string;
   certFingerprint?: string;
   workingDir?: string;
+  /** stdio node (F-3): spawn command; url stays empty for these nodes. */
+  command?: string;
+  args?: string[];
+  env?: Record<string, string>;
   /** Backend driver: 'goose' (default when omitted) | 'dsh' (DeepSeek Harness). */
   driver?: string;
 }

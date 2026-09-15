@@ -438,6 +438,8 @@
   "fleetNodesSection.secretKeyPlaceholderDsh": "acp-ws bridge --token on the node",
   "fleetNodesSection.secretKeyPlaceholderGoose": "GOOSE_SERVER__SECRET_KEY on the node",
   "fleetNodesSection.serverUrl": "Backend Base URL",
+  "fleetNodesSection.spawnArgs": "Agent args (JSON array)",
+  "fleetNodesSection.spawnCommand": "Agent command (stdio)",
   "fleetNodesSection.title": "Fleet Nodes",
   "fleetNodesSection.urlBaseError": "URL must be the backend base URL before /acp, without query parameters or fragments",
   "fleetNodesSection.urlFormatError": "Invalid URL format",

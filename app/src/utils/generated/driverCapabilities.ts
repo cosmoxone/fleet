@@ -132,7 +132,7 @@ export const DRIVER_CAPABILITY_ENTRIES = {
           "fleetNodes.driver.stdio.noteSpawnedProcess"
         ]
       },
-      "desktopShell": false
+      "desktopShell": true
     }
   }
 } as const;

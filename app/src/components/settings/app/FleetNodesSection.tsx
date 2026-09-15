@@ -56,6 +56,14 @@ const i18n = defineMessages({
     id: 'fleetNodesSection.serverUrl',
     defaultMessage: 'Backend Base URL',
   },
+  spawnCommand: {
+    id: 'fleetNodesSection.spawnCommand',
+    defaultMessage: 'Agent command (stdio)',
+  },
+  spawnArgs: {
+    id: 'fleetNodesSection.spawnArgs',
+    defaultMessage: 'Agent args (JSON array)',
+  },
   secretKey: {
     id: 'fleetNodesSection.secretKey',
     defaultMessage: 'Secret Key',
@@ -269,6 +277,44 @@ export default function FleetNodesSection() {
                   isDisabled={isSaving}
                 />
               </div>
+              {effectiveFleetDriver(node.driver) === 'stdio' ? (
+                <>
+                  <div className="space-y-2">
+                    <label htmlFor={`fleet-command-${node.id}`} className="text-text-primary text-xs">
+                      {intl.formatMessage(i18n.spawnCommand)}
+                    </label>
+                    <Input
+                      id={`fleet-command-${node.id}`}
+                      type="text"
+                      placeholder="/path/to/agent or hermes-acp"
+                      value={node.command ?? ''}
+                      onChange={(e) => updateNode(node.id, 'command', e.target.value)}
+                      onBlur={() => commitNode(node.id)}
+                      disabled={isSaving}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor={`fleet-args-${node.id}`} className="text-text-primary text-xs">
+                      {intl.formatMessage(i18n.spawnArgs)}
+                    </label>
+                    <Input
+                      id={`fleet-args-${node.id}`}
+                      type="text"
+                      placeholder='["acp"] (JSON array)'
+                      value={node.args ? JSON.stringify(node.args) : ''}
+                      onChange={(e) => {
+                        try {
+                          updateNode(node.id, 'args', e.target.value.trim() ? JSON.parse(e.target.value) : undefined);
+                        } catch {
+                          // incomplete JSON while typing — keep last valid
+                        }
+                      }}
+                      onBlur={() => commitNode(node.id)}
+                      disabled={isSaving}
+                    />
+                  </div>
+                </>
+              ) : (
               <div className="space-y-2">
                 <label htmlFor={`fleet-url-${node.id}`} className="text-text-primary text-xs">
                   {intl.formatMessage(i18n.serverUrl)}
@@ -284,12 +330,15 @@ export default function FleetNodesSection() {
                   className={errors[node.id] ? 'border-red-500' : ''}
                 />
               </div>
+              )}
               {errors[node.id] && (
                 <p className="text-xs text-red-500 flex items-center gap-1">
                   <AlertCircle size={12} />
                   {errors[node.id]}
                 </p>
               )}
+              {effectiveFleetDriver(node.driver) !== 'stdio' && (
+                <>
               <div className="space-y-2">
                 <label htmlFor={`fleet-secret-${node.id}`} className="text-text-primary text-xs">
                   {intl.formatMessage(i18n.secretKey)}
@@ -326,6 +375,8 @@ export default function FleetNodesSection() {
                   className="font-mono text-xs"
                 />
               </div>
+                </>
+              )}
               <div className="space-y-2">
                 <label htmlFor={`fleet-workdir-${node.id}`} className="text-text-primary text-xs">
                   {intl.formatMessage(i18n.workingDir)}

@@ -4741,5 +4741,11 @@
   },
   "capabilityRoute.backToChat": {
     "defaultMessage": "返回聊天"
+  },
+  "fleetNodesSection.spawnCommand": {
+    "defaultMessage": "Agent 命令（stdio）"
+  },
+  "fleetNodesSection.spawnArgs": {
+    "defaultMessage": "Agent 参数（JSON 数组）"
   }
 }

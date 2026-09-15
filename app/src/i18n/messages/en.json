@@ -4741,5 +4741,11 @@
   },
   "capabilityRoute.backToChat": {
     "defaultMessage": "Back to chat"
+  },
+  "fleetNodesSection.spawnCommand": {
+    "defaultMessage": "Agent command (stdio)"
+  },
+  "fleetNodesSection.spawnArgs": {
+    "defaultMessage": "Agent args (JSON array)"
   }
 }

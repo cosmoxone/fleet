@@ -156,6 +156,6 @@ describe('driver selection', () => {
   });
 
   it('mirrors the runtime driver registry options', () => {
-    expect(FLEET_DRIVER_OPTIONS.map((option) => option.id)).toEqual(['goose', 'dsh']);
+    expect(FLEET_DRIVER_OPTIONS.map((option) => option.id)).toEqual(['goose', 'dsh', 'stdio']); // F-3 后续:回环物化后 stdio 入桌面下拉
   });
 });

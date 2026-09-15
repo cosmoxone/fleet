@@ -18,7 +18,7 @@ describe('capabilities.json single source (FLEET-CATALOG-001)', () => {
   it('stdio (F-3) declares the spawned-process surface and hides from desktop shell', () => {
     const entry = DRIVER_CAPABILITY_ENTRIES.stdio!;
     expect(entry.capabilities.transports).toEqual(['stdio']);
-    expect(entry.capabilities.desktopShell).toBe(false);
+    expect(entry.capabilities.desktopShell).toBe(true); // F-3 后续:回环物化落地
     expect(entry.capabilities.initializeMeta).toBe('standard');
     expect(appCapabilities(entry.capabilities).reconnectPolicy).toBe('fresh-session');
   });

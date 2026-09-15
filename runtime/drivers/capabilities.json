@@ -87,7 +87,7 @@
           "fleetNodes.driver.stdio.noteSpawnedProcess"
         ]
       },
-      "desktopShell": false
+      "desktopShell": true
     }
   }
 }

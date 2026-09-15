@@ -36,6 +36,7 @@ import { startGooseServe } from './gooseServe';
 import { getLoginShellPath } from './loginShellPath';
 import { GooseServeLeaseRegistry, type GooseServeLease } from './gooseServeLeaseRegistry';
 import { acpWebSocketUrlFromHttpBase, normalizeAcpHttpBaseUrl } from './acp/url';
+import { startStdioLoopback } from './utils/stdioLoopback';
 import { expandTilde, sanitizeGoosePathRoot } from './utils/pathUtils';
 import log from './utils/logger';
 import { ensureWinShims } from './utils/winShims';
@@ -1141,18 +1142,55 @@ const createChat = async (
     let externalCertificateTrust: BackendCertificateTrustRegistration | null = null;
 
     try {
-      const externalBaseUrl = normalizeAcpHttpBaseUrl(externalBackend.url);
-      const externalBase = new URL(externalBaseUrl);
-      if (externalBase.protocol === 'https:') {
-        externalCertificateTrust = trustBackendCertificate(
-          externalBase.hostname,
-          externalBackend.certFingerprint ?? null
+      // F-3 follow-up: stdio nodes (command/args) materialize as a loopback
+      // WS endpoint — the renderer then drives them like any contract-1 node.
+      let healthBaseUrl: string;
+      let healthSecret: string;
+      if (externalBackend.command) {
+        // F-3 follow-up: stdio nodes materialize as a loopback WS endpoint —
+        // the renderer then drives them like any contract-1 node.
+        const loopback = await startStdioLoopback({
+          command: externalBackend.command,
+          args: externalBackend.args,
+          env: externalBackend.env,
+          workingDir: externalBackend.workingDir,
+        });
+        gooseServeLease = gooseServeLeases.createExternal(
+          loopback.acpUrl,
+          loopback.secret,
+          () => loopback.close(),
+          'stdio'
         );
+        healthBaseUrl = loopback.statusUrl.replace(/\/status$/, '');
+        healthSecret = loopback.secret;
+      } else {
+        const externalBaseUrl = normalizeAcpHttpBaseUrl(externalBackend.url);
+        healthBaseUrl = externalBaseUrl;
+        healthSecret = serverSecret;
+
+        const leaseCertificateTrust = externalCertificateTrust as
+          | BackendCertificateTrustRegistration
+          | null;
+        externalCertificateTrust = null;
+        gooseServeLease = gooseServeLeases.createExternal(
+          acpWebSocketUrlFromHttpBase(externalBaseUrl, serverSecret),
+          serverSecret,
+          leaseCertificateTrust ? async () => leaseCertificateTrust.release() : undefined,
+          externalBackend.driver
+        );
+
+        const externalBase = new URL(externalBaseUrl);
+        if (externalBase.protocol === 'https:') {
+          externalCertificateTrust = trustBackendCertificate(
+            externalBase.hostname,
+            externalBackend.certFingerprint ?? null
+          );
+        }
       }
 
       const externalBackendReady = await checkBackendStatus({
-        baseUrl: externalBaseUrl,
-        serverSecret,
+        baseUrl: healthBaseUrl,
+        serverSecret: healthSecret,
         fetch: net.fetch as unknown as typeof globalThis.fetch,
       });
       if (!externalBackendReady) {
@@ -1162,7 +1200,7 @@ const createChat = async (
         const response = dialog.showMessageBoxSync({
           type: 'error',
           title: isFleetNode ? 'Fleet Node Unreachable' : 'External Backend Unreachable',
-          message: `Could not connect to external backend at ${externalBaseUrl}`,
+          message: `Could not connect to external backend at ${externalBackend.command ? externalBackend.command : externalBackend.url}`,
           detail:
             externalBackend.driver === 'dsh'
               ? 'The dsh node must be running (dsh-fleet acp-ws bridge) and the configured secret must match the bridge --token.'
@@ -1191,15 +1229,6 @@ const createChat = async (
         app.quit();
         return;
       }
-
-      const leaseCertificateTrust = externalCertificateTrust;
-      externalCertificateTrust = null;
-      gooseServeLease = gooseServeLeases.createExternal(
-        acpWebSocketUrlFromHttpBase(externalBaseUrl, serverSecret),
-        serverSecret,
-        leaseCertificateTrust ? async () => leaseCertificateTrust.release() : undefined,
-        externalBackend.driver
-      );
     } catch (error) {
       externalCertificateTrust?.release();
       log.error('External ACP backend is misconfigured', error);
