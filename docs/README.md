@@ -2,12 +2,13 @@
 
 ## 当前状态速览（2026-09-15）
 
-**代码已实现**：
-- **main**：P0–P5 全部落定（仓库骨架+契约治理 / `core/` 调度核心 35 测试 / `runtime/` goose 驱动 + acp-smoke / P2 快照+品牌 / P3 打包管线+CI release / P4 文档 / P5 图标）；v0.1.0 release 管线跑通
-- **`feature/dsh-driver`**（领先 main 7 commits）：dsh 驱动 c1–c4 **已实施并通过 5B 桌面验收（2026-09-15 17:51，7/7）**——验收记录与过程发现见 `features/dsh-driver-session-report.md` §5B（F-1 已修；F-2 转 catalog `reconnectPolicy`；F-3 待上游反馈）
-- 2026-09-14/15 会话：纯设计产出（下表 9 新 + 2 改，**未提交**），零代码变更
+**代码已实现**（main，2026-09-15）：
+- P0–P5 全部落定（仓库骨架+契约治理 / core 调度核心 / runtime goose 驱动 + acp-smoke / P2 快照+品牌 / P3 打包管线+CI release / P4 文档 / P5 图标）；v0.1.0 release 管线跑通
+- **F-1 dsh 驱动（c1–c4）**：5B 桌面验收 7/7 通过并合并（`6a95bb0`）——过程发现与复盘见 `features/dsh-driver-session-report.md` §5B + `progress/2026-09-15_5b-acceptance-retrospective.md`
+- **F-2 驱动能力 catalog（S1–S5）**：设计 v0.3 实施 + 5B-lite 点检通过并合并（`64b0d68`）——单一源/codegen+CI 防漂移/UI 预门控/reconnectPolicy 修复（断线自动新会话）/节点 slug；测试 64+705 全绿
+- main 领先 origin 25 commits（**未推送**，推送触发 release 流水线，时机待定）
 
-**已设计待实施**（参考设计，见下表）：ORCH-001 桥 / HUB-001 fleetd / NAMING-001 / HERMES-001 / OPENCLAW-001
+**已设计待实施**：ORCH-001 桥（M0 试点 0.5–1 天）‖ V1 第三方 UI 能力核实 → F-12 fleetd 或 F-3 stdio 驱动；HERMES/OPENCLAW 接入（catalog 就绪后"填表即接入"）
 
 **后续路径**：`planning/fleet-roadmap-v2.md`（v1.5：F-1…F-12 + 依赖图 + §9 周历）；
 精益执行顺序见 `progress/2026-09-15_hub-design-review.md` §8
