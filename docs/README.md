@@ -32,7 +32,7 @@
 | [features/acp-mcp-bridge-design.md](./features/acp-mcp-bridge-design.md) | FLEET-ORCH-001 | ACP→MCP 编排桥（fleetd 面②）v0.3 |
 | [features/fleet-core-service-design.md](./features/fleet-core-service-design.md) | FLEET-HUB-001 | fleetd 内核服务/多前端（六面 + 北向矩阵/命名）v0.3 |
 | [features/node-naming-spec.md](./features/node-naming-spec.md) | FLEET-NAMING-001 | 节点与 Agent 命名规范 v0.1 |
-| [features/hermes-driver-design.md](./features/hermes-driver-design.md) | FLEET-HERMES-001 | hermes 接入技术方案 v1.0 |
+| [features/driver-capability-catalog-design.md](./features/driver-capability-catalog-design.md) | FLEET-CATALOG-001 | **F-2 驱动能力 catalog 设计 v0.2（已自评审，待实施）** || [features/hermes-driver-design.md](./features/hermes-driver-design.md) | FLEET-HERMES-001 | hermes 接入技术方案 v1.0 |
 | [features/openclaw-driver-design.md](./features/openclaw-driver-design.md) | FLEET-OPENCLAW-001 | openclaw 接入技术方案 v1.1 |
 | [research/berd-notes.md](./research/berd-notes.md) | — | Block berd 对照（A1–A7） |
 | [research/nf-board-notes.md](./research/nf-board-notes.md) | — | nf-board（vibe-kanban）对照（N1–N5）v1.0 |
@@ -40,6 +40,7 @@
 | [research/remote-node-operation-notes.md](./research/remote-node-operation-notes.md) | — | 操作远端节点六机制谱系 v1.2 |
 | [planning/fleet-roadmap-v2.md](./planning/fleet-roadmap-v2.md) | — | v2 特性规划 v1.5 |
 | [progress/2026-09-15_hub-design-review.md](./progress/2026-09-15_hub-design-review.md) | — | 设计网络四维评审记录 |
+| [progress/2026-09-15_5b-acceptance-retrospective.md](./progress/2026-09-15_5b-acceptance-retrospective.md) | — | **5B 验收全历程复盘（P0-P4 排障 / M1-M8 方法论 / L1-L10 教训 / agent 最佳实践 8 条）** |
 
 ## fork 时期（历史工件，快照基线 `0e17bf7..f4066f1`）
 
