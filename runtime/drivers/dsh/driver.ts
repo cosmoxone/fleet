@@ -3,6 +3,7 @@ import { createWebSocketStream } from '@agentclientprotocol/sdk/experimental/ws-
 import type { AcpDriver, AcpSession, DriverCapabilities, HealthReport } from '../../../core/driver';
 import { acpWebSocketUrlFromHttpBase } from '../../../core/url';
 import type { FleetNode } from '../../../core/node';
+import { driverCapabilityEntry } from '../capabilities';
 
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
 
@@ -50,16 +51,12 @@ export const dshDriver: AcpDriver = {
   id: 'dsh',
   displayName: 'DeepSeek Harness (dsh-acp-demo via acp-ws bridge)',
   capabilities(): DriverCapabilities {
-    return {
-      protocol: 'acp',
-      transports: ['http-websocket'],
-      // The pinned fingerprint travels on the node; enforcement happens in the
-      // Electron transport layer (see INTEGRATION.md contract 1). The bridge
-      // prints a `sha256/<base64>` fingerprint at startup, same format goose
-      // serve uses.
-      tlsCertificatePinning: true,
-      localProvisioning: false,
-    };
+    // Single source: runtime/drivers/capabilities.json (FLEET-CATALOG-001).
+    // The pinned fingerprint travels on the node; enforcement happens in the
+    // Electron transport layer (see INTEGRATION.md contract 1). The bridge
+    // prints a `sha256/<base64>` fingerprint at startup, same format goose
+    // serve uses.
+    return driverCapabilityEntry('dsh').capabilities;
   },
   connect(node: FleetNode): AcpSession {
     return connectSession(node);

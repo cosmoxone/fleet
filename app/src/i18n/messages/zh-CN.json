@@ -4732,5 +4732,14 @@
   },
   "fleetNodesSection.secretKeyPlaceholderDsh": {
     "defaultMessage": "节点上 acp-ws 桥的 --token"
+  },
+  "capabilityRoute.unsupported.title": {
+    "defaultMessage": "当前节点不支持此功能"
+  },
+  "capabilityRoute.unsupported.description": {
+    "defaultMessage": "此节点的驱动不支持该功能。{modelLabel}"
+  },
+  "capabilityRoute.backToChat": {
+    "defaultMessage": "返回聊天"
   }
 }

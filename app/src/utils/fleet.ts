@@ -1,6 +1,10 @@
 import type { MenuItemConstructorOptions } from 'electron';
 import type { ExternalBackendConfig, FleetNodeConfig, Settings } from './settings';
 import { normalizeAcpHttpBaseUrl } from '../acp/url';
+import {
+  DRIVER_CAPABILITY_ENTRIES,
+  type FleetDriverCapabilities,
+} from './generated/driverCapabilities';
 
 export const FLEET_MENU_LABEL = 'New Chat on Node…';
 export const FLEET_MENU_EMPTY_HINT = 'Add nodes in Settings → Sharing → Fleet Nodes';
@@ -19,16 +23,25 @@ export interface ExternalBackend {
 }
 
 /**
- * Driver options for the fleet node settings UI. Mirrored from
- * runtime/drivers/index.ts (the app does not import core/runtime — snapshot
- * boundary). Keep both lists in sync when adding drivers.
+ * Driver options for the fleet node settings UI. Generated from the single
+ * source (runtime/drivers/capabilities.json) via
+ * scripts/gen-driver-capabilities.mjs — the hand-written mirror is retired
+ * (FLEET-CATALOG-001 S2); CI verifies the artifact stays in sync.
  */
-export const FLEET_DRIVER_OPTIONS = [
-  { id: 'goose', displayName: 'goose (goose serve, ACP over WebSocket)' },
-  { id: 'dsh', displayName: 'DeepSeek Harness (dsh-acp-demo via acp-ws bridge)' },
-] as const;
+export const FLEET_DRIVER_OPTIONS = Object.entries(DRIVER_CAPABILITY_ENTRIES).map(([id, entry]) => ({
+  id,
+  displayName: entry.displayName,
+}));
 
-export type FleetDriverId = 'goose' | 'dsh';
+export type FleetDriverId = keyof typeof DRIVER_CAPABILITY_ENTRIES;
+
+/** Resolves a driver's declared capabilities (typed mirror of core schema). */
+export function fleetDriverCapabilities(driver: string | undefined): FleetDriverCapabilities {
+  return (
+    DRIVER_CAPABILITY_ENTRIES[driver as FleetDriverId] ??
+    DRIVER_CAPABILITY_ENTRIES.goose
+  ).capabilities;
+}
 
 /** Normalizes a node's driver field; unknown/missing values fall back to goose. */
 export function effectiveFleetDriver(driver: string | undefined): FleetDriverId {

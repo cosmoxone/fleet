@@ -25,6 +25,7 @@ interface PairRouteState {
 import SettingsView, { SettingsViewOptions } from './components/settings/SettingsView';
 import SessionsView from './components/sessions/SessionsView';
 import SchedulesView from './components/schedule/SchedulesView';
+import CapabilityRoute from './components/CapabilityRoute';
 import ProviderSettings from './components/settings/providers/ProviderSettingsPage';
 import { AppLayout } from './components/Layout/AppLayout';
 import { ChatProvider, DEFAULT_CHAT_TITLE } from './contexts/ChatContext';
@@ -201,16 +202,28 @@ const SettingsRoute = () => {
 };
 
 const SessionsRoute = () => {
-  return <SessionsView />;
+  return (
+    <CapabilityRoute flag="sessionList">
+      <SessionsView />
+    </CapabilityRoute>
+  );
 };
 
 const SchedulesRoute = () => {
   const navigate = useNavigate();
-  return <SchedulesView onClose={() => navigate('/')} />;
+  return (
+    <CapabilityRoute flag="schedules">
+      <SchedulesView onClose={() => navigate('/')} />
+    </CapabilityRoute>
+  );
 };
 
 const RecipesRoute = () => {
-  return <RecipesView />;
+  return (
+    <CapabilityRoute flag="recipes">
+      <RecipesView />
+    </CapabilityRoute>
+  );
 };
 
 const SkillsRoute = () => {

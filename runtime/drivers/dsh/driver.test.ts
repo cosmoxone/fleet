@@ -13,12 +13,14 @@ const offlineNode = {
 
 describe('dshDriver', () => {
   it('declares ACP over WebSocket capabilities without local provisioning', () => {
-    expect(dshDriver.capabilities()).toEqual({
-      protocol: 'acp',
-      transports: ['http-websocket'],
-      tlsCertificatePinning: true,
-      localProvisioning: false,
-    });
+    const caps = dshDriver.capabilities();
+    expect(caps.protocol).toBe('acp');
+    expect(caps.transports).toEqual(['http-websocket']);
+    expect(caps.tlsCertificatePinning).toBe(true);
+    expect(caps.localProvisioning).toBe(false);
+    // F-2: standard ACP initialize face, degraded app surface
+    // (single source: capabilities.json; details in capabilities.test.ts).
+    expect(caps.initializeMeta).toBe('standard');
   });
 
   it('identifies as dsh', () => {

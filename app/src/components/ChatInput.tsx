@@ -1,5 +1,6 @@
 import { AppEvents } from '../constants/events';
 import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { useFleetAppCapabilities } from '../hooks/useFleetAppCapabilities';
 import { ArrowUp, Bug, ScrollText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/Tooltip';
 import { Button } from './ui/button';
@@ -226,6 +227,7 @@ export default function ChatInput({
   nextChatExtensionDraft,
   onNextChatExtensionDraftChange,
 }: ChatInputProps) {
+  const fleetCaps = useFleetAppCapabilities();
   const [_value, setValue] = useState(initialValue);
   const [displayValue, setDisplayValue] = useState(initialValue); // For immediate visual feedback
   const [isFocused, setIsFocused] = useState(false);
@@ -1655,19 +1657,26 @@ export default function ChatInput({
           (e.g. on a small window), the secondary controls drop out so the
           model selector + send button always stay visible. */}
       <div ref={bottomBarRef} className="flex flex-row items-center gap-2 px-3 py-2 relative">
-        {/* Left: model selector */}
+        {/* Left: model selector (F-2: drivers without a providers face get
+            the catalog's neutral label instead of an interactive picker) */}
         <Tooltip>
           <div>
-            <ModelsBottomBar
-              sessionId={sessionId}
-              dropdownRef={dropdownRef}
-              setView={setView}
-              sessionModel={effectiveModel}
-              sessionProvider={effectiveProvider}
-              latestInference={latestInference}
-              onModelChanged={setModelOverride}
-              sessionLoaded={sessionLoaded}
-            />
+            {fleetCaps.providers ? (
+              <ModelsBottomBar
+                sessionId={sessionId}
+                dropdownRef={dropdownRef}
+                setView={setView}
+                sessionModel={effectiveModel}
+                sessionProvider={effectiveProvider}
+                latestInference={latestInference}
+                onModelChanged={setModelOverride}
+                sessionLoaded={sessionLoaded}
+              />
+            ) : (
+              <div className="flex flex-row items-center gap-1 px-2 py-1 text-text-muted text-sm">
+                <span>{fleetCaps.modelLabel ?? 'remote (node-configured)'}</span>
+              </div>
+            )}
           </div>
         </Tooltip>
 

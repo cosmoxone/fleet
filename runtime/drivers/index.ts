@@ -2,11 +2,14 @@ import type { AcpDriver } from '../../core/driver';
 import { gooseDriver } from './goose/driver';
 import { dshDriver } from './dsh/driver';
 import { DEFAULT_DRIVER_ID, effectiveDriverId, type FleetNode } from '../../core/node';
+import { driverCapabilityEntry } from './capabilities';
 
 /**
- * Driver registry (core-facing side). The app hosts a mirrored option list in
- * `app/src/utils/fleet.ts` because the Electron app does not import
- * core/runtime (snapshot boundary) — keep both in sync when adding drivers.
+ * Driver registry (core-facing side). The app consumes a generated mirror of
+ * the capability declarations: runtime/drivers/capabilities.json →
+ * scripts/gen-driver-capabilities.mjs → app/src/utils/generated/… (CI checks
+ * drift). Add a driver = register here + declare in capabilities.json +
+ * regenerate; nothing stays hand-synced.
  */
 export const DRIVERS: ReadonlyMap<string, AcpDriver> = new Map([
   [gooseDriver.id, gooseDriver],
@@ -27,5 +30,10 @@ export function resolveDriverForNode(node: Pick<FleetNode, 'driver'>): AcpDriver
 }
 
 export function listDriverOptions(): { id: string; displayName: string }[] {
-  return [...DRIVERS.values()].map((driver) => ({ id: driver.id, displayName: driver.displayName }));
+  // Display names come from capabilities.json (single source); the map order
+  // (registration order) stays authoritative for menu ordering.
+  return [...DRIVERS.values()].map((driver) => ({
+    id: driver.id,
+    displayName: driverCapabilityEntry(driver.id).displayName,
+  }));
 }

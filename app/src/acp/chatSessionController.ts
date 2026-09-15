@@ -53,6 +53,14 @@ export interface AcpChatSessionController {
   ): Promise<Session>;
   loadSession(sessionId: string, options?: AcpLoadSessionOptions): Promise<void>;
   restoreSession(sessionId: string): Promise<void>;
+  /**
+   * Replaces a session that can no longer be resumed server-side with a
+   * fresh one (same working directory). Used by drivers whose catalog
+   * `reconnectPolicy` is `fresh-session` (e.g. dsh: one session per
+   * connection — 5B finding F-2). Returns the new session id; dispatches
+   * ADD_ACTIVE_SESSION(new) + SESSION_DELETED(old).
+   */
+  replaceWithFreshSession(sessionId: string): Promise<string>;
   submitMessage(
     sessionId: string,
     userMessage: Message,
@@ -144,6 +152,21 @@ async function loadSession(sessionId: string, options: AcpLoadSessionOptions = {
 
 async function restoreSession(sessionId: string): Promise<void> {
   await loadSessionFromServer(sessionId);
+}
+
+async function replaceWithFreshSession(sessionId: string): Promise<string> {
+  const snapshot = acpChatSessionStore.getSnapshot(sessionId);
+  const cwd = snapshot?.session?.working_dir ?? '';
+  // Create first: on failure the old session stays untouched (logged by the
+  // caller) instead of leaving the window without any session.
+  const session = await createSession(cwd, []);
+  window.dispatchEvent(
+    new CustomEvent(AppEvents.ADD_ACTIVE_SESSION, { detail: { sessionId: session.id } })
+  );
+  window.dispatchEvent(
+    new CustomEvent(AppEvents.SESSION_DELETED, { detail: { sessionId } })
+  );
+  return session.id;
 }
 
 async function loadSessionFromServer(
@@ -328,6 +351,7 @@ export const acpChatSessionController: AcpChatSessionController = {
   createSession,
   loadSession,
   restoreSession,
+  replaceWithFreshSession,
   submitMessage,
   stop,
   updateMessage,

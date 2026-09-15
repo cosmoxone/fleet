@@ -1,0 +1,58 @@
+{
+  "goose": {
+    "displayName": "goose (goose serve, ACP over WebSocket)",
+    "capabilities": {
+      "protocol": "acp",
+      "transports": ["http-websocket"],
+      "tlsCertificatePinning": true,
+      "localProvisioning": true,
+      "initializeMeta": "goose",
+      "app": {
+        "sessionList": true,
+        "sessionResume": true,
+        "sessionRename": true,
+        "onboardingGuard": true,
+        "providers": true,
+        "recipes": true,
+        "schedules": true,
+        "mcpApps": true,
+        "steer": true,
+        "cancel": "request",
+        "reconnectPolicy": "resume",
+        "permissionSurface": "acp-standard",
+        "modelLabel": null,
+        "notes": []
+      }
+    }
+  },
+  "dsh": {
+    "displayName": "DeepSeek Harness (dsh-acp-demo via acp-ws bridge)",
+    "capabilities": {
+      "protocol": "acp",
+      "transports": ["http-websocket"],
+      "tlsCertificatePinning": true,
+      "localProvisioning": false,
+      "initializeMeta": "standard",
+      "app": {
+        "sessionList": false,
+        "sessionResume": false,
+        "sessionRename": false,
+        "onboardingGuard": false,
+        "providers": false,
+        "recipes": false,
+        "schedules": false,
+        "mcpApps": false,
+        "steer": false,
+        "cancel": "notify-noop",
+        "reconnectPolicy": "fresh-session",
+        "permissionSurface": "silent-policy",
+        "modelLabel": "remote (node-configured)",
+        "notes": [
+          "fleetNodes.driver.dsh.noteSessionHistory",
+          "fleetNodes.driver.dsh.noteModelRemote",
+          "fleetNodes.driver.dsh.noteCancelSilent"
+        ]
+      }
+    }
+  }
+}

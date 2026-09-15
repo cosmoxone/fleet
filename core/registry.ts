@@ -1,6 +1,13 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { validateFleetNode, type FleetNode } from './node';
+import {
+  deriveNodeSlug,
+  fleetNodeSlug,
+  generateNodeSlug,
+  isValidNodeSlug,
+  validateFleetNode,
+  type FleetNode,
+} from './node';
 
 /** Structural slice of the shell settings file the registry operates on. */
 export interface FleetSettingsStore {
@@ -20,8 +27,23 @@ export function addNode(settings: FleetSettingsStore, node: NewFleetNode): Fleet
   if (error) {
     throw new Error(`invalid fleet node: ${error}`);
   }
-  settings.externalBackends = [...listNodes(settings), entry];
-  return entry;
+  // FLEET-NAMING-001: persist an explicit slug on add (explicit save point).
+  // Derive from the display name when possible; non-derivable names get a
+  // generated short id (N-D2). Invalid/duplicate slugs fail loudly — no
+  // silent auto-suffixing (N-D1).
+  const effectiveSlug = entry.slug ?? (deriveNodeSlug(entry.name) || generateNodeSlug());
+  if (!isValidNodeSlug(effectiveSlug)) {
+    throw new Error(
+      `invalid fleet node slug "${effectiveSlug}": must match ${'[a-z0-9-]'} (1-40) and not be reserved`
+    );
+  }
+  const takenBy = listNodes(settings).find((n) => fleetNodeSlug(n) === effectiveSlug);
+  if (takenBy) {
+    throw new Error(`fleet node slug "${effectiveSlug}" already used by "${takenBy.name}"`);
+  }
+  const withSlug: FleetNode = { ...entry, slug: effectiveSlug };
+  settings.externalBackends = [...listNodes(settings), withSlug];
+  return withSlug;
 }
 
 /** @returns false when the id is unknown. */
