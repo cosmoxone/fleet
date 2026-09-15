@@ -1,6 +1,6 @@
 # 特性设计：驱动能力 catalog（F-2，=A2 升格）
 
-> 特性 ID：`FLEET-CATALOG-001` · 状态：**设计 v0.2 草案，已自评审**（2026-09-15；v0.2 = 自评审修正后版本，见 §9）
+> 特性 ID：`FLEET-CATALOG-001` · 状态：**设计 v0.3——已实施 S1–S5（分支 `feature/f2-catalog`，测试 64+705 全绿）**（2026-09-15）
 > 目标（roadmap v1.5 F-2 行）：把散落各处的 D7 降级分支收敛为**单一能力事实源**，
 > 并同批落地节点命名 slug（`node-naming-spec.md`）。估时 1–2 天（+命名 0.5–1 天）。
 > 输入：roadmap §3.1 schema 草案（R3）；`dsh-harness-driver.md` §5.5 D7 矩阵；
@@ -141,9 +141,7 @@ canonical/acpx 键为纯派生函数（`fleet/<slug>`、`fleet-<slug>`），落 
 | C-D2 | strangler 范围：v1 迁移哪些分支 | §5 表全部（都是一行依据替换，风险低）；S4 是唯一行为变更 |
 | C-D3 | notes 文案 key 进 catalog | 进（i18n key 而非文案本体，翻译仍在 locale 文件） |
 
-## 9. 自评审记录（v0.1 → v0.2）
-
-| # | 发现 | 处置 |
+## 9. 自评审记录（v0.1 → v0.2）| # | 发现 | 处置 |
 |---|---|---|
 | R1 | v0.1 schema 漏了 c4 已修的面（onboardingGuard）和 acpConnection 的分流依据（initializeMeta）——**设计输入没吃透自家最近一次修复** | 补两字段（§3） |
 | R2 | v0.1 未包含验收 P3 的 reconnectPolicy 需求 | 补字段 + S4 行为修复 + 判据 2 |
@@ -151,6 +149,8 @@ canonical/acpx 键为纯派生函数（`fleet/<slug>`、`fleet-<slug>`），落 
 | R4 | codegen 生成物若只在构建时生成，克隆后不可跑 | 改为生成物入库 + CI 校验（§4、风险表） |
 | R5 | 判据缺"回归 F-2 缺口"的测试形态 | 判据 2 明确（mock 断连→恢复→无错屏→可对话） |
 | R6 | S4 若发明新会话替换机制会扩大风险面 | 风险表明确复用既有 createSession 路径 |
+| R7（v0.3 实施偏差） | §6 原计划 app 表单含 slug 输入——但 app 不能 import core，slug 校验逻辑会二次手工镜像（刚被 S2 消灭的 D3 模式） | **缓行**：node-cli 为 slug 授权面（走 core 全量校验）；app 表单集成等首个消费者（M2-alt 面⑥/桥需要展示 slug 时）再定 codegen 或 IPC 方案 |
+| R8（v0.3 实施记录） | S6（acp-contract.json 转换脚本）未做 | 按设计"可后置"执行：dsh 条目手填且已有测试锁定事实 |
 
 ## 10. 变更记录
 
@@ -158,3 +158,4 @@ canonical/acpx 键为纯派生函数（`fleet/<slug>`、`fleet-<slug>`），落 
 |---|---|---|
 | v0.1 | 2026-09-15 | 初稿（内部，未发布） |
 | v0.2 | 2026-09-15 | 自评审后发布：schema 补 initializeMeta/onboardingGuard/reconnectPolicy/permissionSurface；codegen 入库+CI 方案；S1-S6 计划与判据；R1-R6 记录 |
+| v0.3 | 2026-09-15 | **实施记录（分支 feature/f2-catalog）**：S1 单一源+校验器（fb534b5）；S2 codegen+CI+手写镜像退场（ca1a9e6）；S4 reconnectPolicy 行为修复=5B F-2 缺口闭环（b7e9354）；S3 路由级预门控+模型栏中性 label（e5698f1）；S5 slug 落地 core/registry/cli（05c14cb）。测试 42→64 / 699→705。偏差：R7 app 表单缓行、R8=S6 后置；合并前建议 5B-lite 真机点检（复盘 L1） |
