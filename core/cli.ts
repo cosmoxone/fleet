@@ -102,15 +102,15 @@ switch (command) {
   }
 
   case 'add': {
-    if (!options.name || !options.url || !options.secret) {
-      console.error('add requires --name --url --secret');
+    if (!options.name || !(options.url || options.command) || !options.secret) {
+      console.error('add requires --name and (--url | --command) and --secret');
       process.exit(1);
     }
     let entry;
     try {
       entry = addNode(settings, {
         name: options.name,
-        url: options.url,
+        url: options.url ?? '',
         secret: options.secret,
         ...(options.id ? { id: options.id } : {}),
         ...(options.fingerprint ? { certFingerprint: options.fingerprint } : {}),
@@ -118,8 +118,8 @@ switch (command) {
         ...(options.driver ? { driver: options.driver } : {}),
         ...(options.slug ? { slug: options.slug } : {}),
         ...(options.command ? { command: options.command } : {}),
-        ...(options.argsJson ? { args: JSON.parse(options.argsJson) as string[] } : {}),
-        ...(options.envJson ? { env: JSON.parse(options.envJson) as Record<string, string> } : {}),
+        ...(options['args-json'] ? { args: JSON.parse(options['args-json']) as string[] } : {}),
+        ...(options['env-json'] ? { env: JSON.parse(options['env-json']) as Record<string, string> } : {}),
       });
     } catch (error) {
       console.error(error instanceof Error ? error.message : error);
