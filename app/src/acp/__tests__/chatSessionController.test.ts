@@ -50,6 +50,7 @@ vi.mock('../sessions', () => ({
   sessionInfoToSession: vi.fn(),
   acpForkSession: vi.fn(),
   acpTruncateSessionConversation: vi.fn(),
+  acpNewSession: vi.fn(),
 }));
 
 vi.mock('../prompt', () => ({
@@ -409,5 +410,71 @@ describe('acpChatSessionController.updateMessage', () => {
       SESSION_ID,
       'attempt-1'
     );
+  });
+});
+
+describe('replaceWithFreshSession (F-2 reconnectPolicy: fresh-session, 5B finding F-2)', () => {
+  const OLD_ID = 'dead-session-1';
+
+  function listenForEvents() {
+    const events: Array<{ type: string; sessionId?: string }> = [];
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ sessionId?: string }>;
+      events.push({ type: event.type, sessionId: custom.detail?.sessionId });
+    };
+    window.addEventListener('add-active-session', handler);
+    window.addEventListener('session-deleted', handler);
+    return {
+      events,
+      cleanup: () => {
+        window.removeEventListener('add-active-session', handler);
+        window.removeEventListener('session-deleted', handler);
+      },
+    };
+  }
+
+  beforeEach(async () => {
+    const { acpNewSession, sessionInfoToSession } = await import('../sessions');
+    vi.mocked(acpNewSession).mockResolvedValue({
+      sessionId: 'fresh-1',
+      sessionInfo: { sessionId: 'fresh-1' } as never,
+      meta: {} as never,
+    });
+    vi.mocked(sessionInfoToSession).mockReturnValue({
+      id: 'fresh-1',
+      working_dir: '/tmp',
+    } as never);
+  });
+
+  it('creates a replacement with the same working directory and swaps session registry entries', async () => {
+    const { acpChatSessionStore } = await import('../chatSessionStore');
+    vi.mocked(acpChatSessionStore.getSnapshot).mockReturnValue({
+      session: { working_dir: '/tmp/dsh-work' } as never,
+    } as never);
+    const { acpNewSession } = await import('../sessions');
+    const listener = listenForEvents();
+
+    try {
+      const newId = await acpChatSessionController.replaceWithFreshSession(OLD_ID);
+
+      expect(newId).toBe('fresh-1');
+      expect(acpNewSession).toHaveBeenCalledWith('/tmp/dsh-work', [], undefined);
+      expect(listener.events).toEqual([
+        { type: 'add-active-session', sessionId: 'fresh-1' },
+        { type: 'session-deleted', sessionId: OLD_ID },
+      ]);
+    } finally {
+      listener.cleanup();
+    }
+  });
+
+  it('falls back to an empty working directory when no snapshot exists', async () => {
+    const { acpChatSessionStore } = await import('../chatSessionStore');
+    const { acpNewSession } = await import('../sessions');
+    vi.mocked(acpChatSessionStore.getSnapshot).mockReturnValue(undefined as never);
+
+    await acpChatSessionController.replaceWithFreshSession(OLD_ID);
+
+    expect(acpNewSession).toHaveBeenCalledWith('', [], undefined);
   });
 });
