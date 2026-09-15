@@ -64,7 +64,10 @@ export function validateCapabilities(
       `capabilities.json: ${driverId}.transports must be a non-empty subset of [${TRANSPORTS.join(', ')}]`
     );
   }
-  for (const field of ['tlsCertificatePinning', 'localProvisioning'] as const) {
+  for (const field of ['tlsCertificatePinning', 'localProvisioning', 'desktopShell'] as const) {
+    if (field === 'desktopShell' && caps[field] === undefined) {
+      continue; // optional; absent = desktop-capable
+    }
     if (typeof caps[field] !== 'boolean') {
       throw new Error(`capabilities.json: ${driverId}.${field} must be a boolean`);
     }

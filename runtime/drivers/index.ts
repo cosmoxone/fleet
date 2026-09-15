@@ -1,6 +1,7 @@
 import type { AcpDriver } from '../../core/driver';
 import { gooseDriver } from './goose/driver';
 import { dshDriver } from './dsh/driver';
+import { stdioDriver } from './stdio/driver';
 import { DEFAULT_DRIVER_ID, effectiveDriverId, type FleetNode } from '../../core/node';
 import { driverCapabilityEntry } from './capabilities';
 
@@ -14,6 +15,7 @@ import { driverCapabilityEntry } from './capabilities';
 export const DRIVERS: ReadonlyMap<string, AcpDriver> = new Map([
   [gooseDriver.id, gooseDriver],
   [dshDriver.id, dshDriver],
+  [stdioDriver.id, stdioDriver],
 ]);
 
 export function resolveDriver(id: string | undefined): AcpDriver {

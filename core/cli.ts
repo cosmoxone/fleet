@@ -9,11 +9,14 @@
 //   pnpm node-cli -- rename --id <nodeId> --name <newName>
 //   pnpm node-cli -- secret --id <nodeId> --secret S2     # rotate a node secret
 //   pnpm node-cli -- remove --id <nodeId>
+//   pnpm node-cli -- add --name local-claude --command npx --args-json '["-y","@agentclientprotocol/claude-acp"]' --driver stdio
+//   pnpm node-cli -- import-acpx <registry.json> [--file <settings.json>]
 //
 // settings.json location (default): Windows %APPDATA%/Fleet/settings.json,
 // macOS ~/Library/Application Support/Fleet/settings.json,
 // Linux ~/.config/Fleet/settings.json.
 import { existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import {
@@ -41,18 +44,38 @@ function defaultSettingsFile(): string {
   return path.join(home, '.config', 'Fleet', 'settings.json');
 }
 
-function parseArgs(argv: string[]): { command: string; options: Record<string, string> } {
+function parseArgs(argv: string[]): {
+  command: string;
+  options: Record<string, string>;
+  positional?: string;
+} {
   const [command, ...rest] = argv;
   const options: Record<string, string> = {};
-  for (let i = 0; i < rest.length; i += 2) {
-    options[rest[i]!.replace(/^--/, '')] = rest[i + 1]!;
+  let positional: string | undefined;
+  for (let i = 0; i < rest.length; i++) {
+    const token = rest[i]!;
+    if (token.startsWith('--')) {
+      // Flag (with its value, when present and not itself a flag).
+      const next = rest[i + 1];
+      if (next !== undefined && !next.startsWith('--')) {
+        options[token.replace(/^--/, '')] = next;
+        i++;
+      } else {
+        options[token.replace(/^--/, '')] = 'true';
+      }
+      continue;
+    }
+    if (positional === undefined) {
+      positional = token;
+    }
   }
-  return { command: command ?? '', options };
+  return { command: command ?? '', options, positional };
 }
 
 // Tolerate the leading "--" some runners (pnpm) forward to the script.
 const argv = process.argv.slice(2);
-const { command, options } = parseArgs(argv[0] === '--' ? argv.slice(1) : argv);
+const parsed = parseArgs(argv[0] === '--' ? argv.slice(1) : argv);
+const { command, options } = parsed;
 const file = options.file ?? defaultSettingsFile();
 
 let settings: FleetSettingsStore = {};
@@ -94,6 +117,9 @@ switch (command) {
         ...(options.workdir ? { workingDir: options.workdir } : {}),
         ...(options.driver ? { driver: options.driver } : {}),
         ...(options.slug ? { slug: options.slug } : {}),
+        ...(options.command ? { command: options.command } : {}),
+        ...(options.argsJson ? { args: JSON.parse(options.argsJson) as string[] } : {}),
+        ...(options.envJson ? { env: JSON.parse(options.envJson) as Record<string, string> } : {}),
       });
     } catch (error) {
       console.error(error instanceof Error ? error.message : error);
@@ -104,6 +130,45 @@ switch (command) {
     break;
   }
 
+  case 'import-acpx': {
+    const source = parsed.positional;
+    if (!source) {
+      console.error('import-acpx requires a registry file path');
+      process.exit(1);
+    }
+    try {
+      const raw = JSON.parse(readFileSync(source, 'utf-8')) as Record<
+        string,
+        { command?: string; args?: string[]; env?: Record<string, string> }
+      >;
+      let added = 0;
+      for (const [key, entry] of Object.entries(raw)) {
+        if (!entry.command) {
+          continue; // non-agent keys / comment fields are skipped
+        }
+        try {
+          addNode(settings, {
+            name: key,
+            url: '',
+            secret: '',
+            driver: 'stdio',
+            command: entry.command,
+            args: entry.args,
+            env: entry.env,
+          });
+          added += 1;
+        } catch (error) {
+          console.error(`skip ${key}: ${error instanceof Error ? error.message : error}`);
+        }
+      }
+      saveFleetSettings(file, settings);
+      console.log(`imported ${added} agent(s) -> ${file}`);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+    break;
+  }
   case 'rename': {
     if (!renameNode(settings, options.id!, options.name!)) {
       console.error(`node not found: ${options.id}`);
