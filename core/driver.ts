@@ -5,6 +5,42 @@ export interface DriverCapabilities {
   transports: readonly ('http-websocket' | 'stdio')[];
   tlsCertificatePinning: boolean;
   localProvisioning: boolean;
+  /** Does initialize carry goose `_meta` capabilities? c2 acpConnection split, made explicit. */
+  initializeMeta?: 'goose' | 'standard';
+  app?: DriverAppCapabilities;
+}
+
+/**
+ * Application-layer capability surface (FLEET-CATALOG-001 / F-2).
+ * Every field is optional; an absent `app` block means "goose-full" —
+ * the documented backward-compat default. Sources of truth for the
+ * declared values: dsh-harness-driver.md §5.5 (D7 matrix), 5B
+ * acceptance findings (c4 onboarding guard, reconnectPolicy).
+ */
+export interface DriverAppCapabilities {
+  /** session/list + session sidebar recent-items face. dsh rc.2: false. */
+  sessionList?: boolean;
+  /** session/load / restore face. dsh rc.2: false (one session per connection). */
+  sessionResume?: boolean;
+  sessionRename?: boolean;
+  /** OnboardingGuard provider check applies. Non-goose: false (c4). */
+  onboardingGuard?: boolean;
+  /** Model/provider picker face (goose *_unstable providers). dsh: false. */
+  providers?: boolean;
+  recipes?: boolean;
+  schedules?: boolean;
+  mcpApps?: boolean;
+  steer?: boolean;
+  /** dsh rc.2 answers session/cancel with -32601: UI hides/degrades the stop action. */
+  cancel?: 'request' | 'notify-noop';
+  /** Post-reconnect session strategy. dsh: fresh-session (5B finding F-2). */
+  reconnectPolicy?: 'resume' | 'fresh-session';
+  /** Permission request surface. dsh cordis approval.policy=never: silent-policy. */
+  permissionSurface?: 'acp-standard' | 'silent-policy';
+  /** Neutral model label for pickers when `providers` is false (fixes D-2 wording). */
+  modelLabel?: string | null;
+  /** i18n keys for degradation notes (translations stay in locale files). */
+  notes?: string[];
 }
 
 export interface HealthReport {

@@ -2,6 +2,7 @@ import type { AcpDriver } from '../../core/driver';
 import { gooseDriver } from './goose/driver';
 import { dshDriver } from './dsh/driver';
 import { DEFAULT_DRIVER_ID, effectiveDriverId, type FleetNode } from '../../core/node';
+import { driverCapabilityEntry } from './capabilities';
 
 /**
  * Driver registry (core-facing side). The app hosts a mirrored option list in
@@ -27,5 +28,10 @@ export function resolveDriverForNode(node: Pick<FleetNode, 'driver'>): AcpDriver
 }
 
 export function listDriverOptions(): { id: string; displayName: string }[] {
-  return [...DRIVERS.values()].map((driver) => ({ id: driver.id, displayName: driver.displayName }));
+  // Display names come from capabilities.json (single source); the map order
+  // (registration order) stays authoritative for menu ordering.
+  return [...DRIVERS.values()].map((driver) => ({
+    id: driver.id,
+    displayName: driverCapabilityEntry(driver.id).displayName,
+  }));
 }

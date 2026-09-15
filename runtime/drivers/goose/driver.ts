@@ -4,6 +4,7 @@ import { createWebSocketStream } from '@agentclientprotocol/sdk/experimental/ws-
 import type { AcpDriver, AcpSession, DriverCapabilities, HealthReport } from '../../../core/driver';
 import { acpWebSocketUrlFromHttpBase } from '../../../core/url';
 import type { FleetNode } from '../../../core/node';
+import { driverCapabilityEntry } from '../capabilities';
 
 const HEALTH_CHECK_TIMEOUT_MS = 5000;
 const DEFAULT_PORT = '3284';
@@ -38,14 +39,8 @@ export const gooseDriver: AcpDriver = {
   id: 'goose',
   displayName: 'goose (goose serve, ACP over WebSocket)',
   capabilities(): DriverCapabilities {
-    return {
-      protocol: 'acp',
-      transports: ['http-websocket'],
-      // The pinned fingerprint travels on the node; enforcement happens in the
-      // Electron transport layer (see INTEGRATION.md contract 1).
-      tlsCertificatePinning: true,
-      localProvisioning: true,
-    };
+    // Single source: runtime/drivers/capabilities.json (FLEET-CATALOG-001).
+    return driverCapabilityEntry('goose').capabilities;
   },
   connect(node: FleetNode): AcpSession {
     return connectSession(node);

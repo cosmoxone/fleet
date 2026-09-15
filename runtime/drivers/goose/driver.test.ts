@@ -10,12 +10,13 @@ const offlineNode = {
 
 describe('gooseDriver', () => {
   it('declares ACP over WebSocket capabilities', () => {
-    expect(gooseDriver.capabilities()).toEqual({
-      protocol: 'acp',
-      transports: ['http-websocket'],
-      tlsCertificatePinning: true,
-      localProvisioning: true,
-    });
+    const caps = gooseDriver.capabilities();
+    expect(caps.protocol).toBe('acp');
+    expect(caps.transports).toEqual(['http-websocket']);
+    expect(caps.tlsCertificatePinning).toBe(true);
+    expect(caps.localProvisioning).toBe(true);
+    // F-2: app-layer surface is goose-full (single source: capabilities.json).
+    expect(caps.initializeMeta).toBe('goose');
   });
 
   it('reports an unhealthy node without throwing', async () => {
