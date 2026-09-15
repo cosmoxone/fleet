@@ -23,6 +23,11 @@ export function loadBridgeNodes(settingsPath: string): BridgeNodeInfo[] {
   }));
 }
 
+/** Full FleetNode list (agent face / dispatch consumers need the whole record). */
+export function loadFleetNodes(settingsPath: string): FleetNode[] {
+  return loadFleetSettings(settingsPath).externalBackends ?? [];
+}
+
 /** Resolves a node by slug first, then by id (both are stable keys). */
 export function findBridgeNode(settingsPath: string, slugOrId: string): FleetNode | undefined {
   const settings = loadFleetSettings(settingsPath);

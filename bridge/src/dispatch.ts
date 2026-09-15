@@ -43,6 +43,8 @@ export interface BridgeSession {
   connection: ClientConnection;
   sessionId: string;
   runPrompt(prompt: string, timeoutMs?: number): Promise<TurnResult>;
+  /** Best-effort cancel of the in-flight prompt (dsh: noop per catalog). */
+  cancel(): void;
   close(): void;
 }
 
@@ -83,10 +85,20 @@ export function collectTurnText(updates: SessionUpdate[]): string {
  * fresh session (one session per dispatch — M0 semantics; session pooling
  * arrives with the session manager).
  */
+export type PermissionPolicy = (
+  params: {
+    sessionId: string;
+    options?: Array<{ optionId: string; kind?: string; name?: string }>;
+    [key: string]: unknown;
+  }
+) => MaybePromise<{ outcome: { outcome: 'selected'; optionId: string } | { outcome: 'cancelled' } }>;
+
 export async function openBridgeSession(
   node: FleetNode,
   options: {
-    permissionPolicy?: typeof rejectFirstOption;
+    permissionPolicy?: PermissionPolicy;
+    /** Stream callback: fired for every session/update as it arrives (M2-alt agent face). */
+    onUpdate?: (params: unknown) => void;
     /** Test seam: custom connection factory (default: WebSocket to node.url). */
     connect?: (app: ClientApp) => ClientConnection;
   } = {}
@@ -97,10 +109,11 @@ export async function openBridgeSession(
   const app = client({ name: 'fleet-bridge', version: '0.1.0' })
     .onNotification(methods.client.session.update, (context) => {
       updates.push(context.params as unknown as SessionUpdate);
+      options.onUpdate?.(context.params);
     })
     .onRequest(methods.client.session.requestPermission, (context) => {
       permissionRequests += 1;
-      return permissionPolicy(context.params) as never;
+      return permissionPolicy(context.params as Parameters<PermissionPolicy>[0]) as never;
     });
 
   const wsUrl = acpWebSocketUrlFromHttpBase(node.url, node.secret);
@@ -152,6 +165,13 @@ export async function openBridgeSession(
         if (timer) {
           clearTimeout(timer);
         }
+      }
+    },
+    cancel() {
+      try {
+        void connection.agent.notify(methods.agent.session.cancel, { sessionId });
+      } catch {
+        // Notification channel closed — nothing to cancel.
       }
     },
     close() {
