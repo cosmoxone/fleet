@@ -102,7 +102,26 @@ cd /home/pc/proj/fleet && pnpm --filter @fleet/app start
 - [ ] **zh-CN 巡查**（retrospective 教训）：切中文界面，设置 → 共享 → Fleet Nodes 的"驱动"下拉、占位符、描述文案正确
 - [ ] **回归**：添加一个 driver 缺省的节点（如本地 goose，`~/.local/bin/goose` 在 PATH）→ 行为与改造前一致
 
-### 5C. 需要人工**输入**
+### 5B 验收记录（2026-09-15 17:51，**通过 7/7**）
+
+| # | 项 | 结果 |
+|---|---|---|
+| 1 | dsh 开窗 | ✓（经 c4 修复后直达聊天） |
+| 2 | DESKTOP-OK 对话 | ✓ |
+| 3 | bash 工具调用（DESKTOP-TOOL） | ✓ |
+| 4 | 断线重连 | ✓ 重连横幅正常；桥重启后 RECONNECTED-OK（经"返回首页→新会话"，见 F-2） |
+| 5 | 降级巡查 | ✓ 模型选择空态/设置页/会话侧栏不崩溃；取消按钮静默无硬错误（R8 文档化行为） |
+| 6 | zh-CN 巡查 | ✓ |
+| 7 | goose 回归 | ✓ |
+
+**过程发现（真实 UI 首跑，§7 预言风险的兑现）**：
+- **F-1（已修，c4 `2f1c7d1`）**：OnboardingGuard 对 dsh 调 `goose.defaultsRead_unstable` 得 -32601，重试 3 次后误报"无法连接到 Goose 服务器"错误屏——D7 漏面；修法=非 goose 驱动跳过引导守卫 + catch 中 `isMethodNotSupportedError` 放行；
+- **F-2（记录，转 F-2 catalog）**：断线重连后 `ChatSessionsContainer.restoreSession` 按 goose 语义恢复旧会话 → dsh 无 `session/load` 面 → "加载会话失败"错误屏（"重试"死路，"返回首页"一键可恢复，无崩溃）；**正确修法=per-driver 重连策略**，建议 F-2 catalog 增加 `reconnectPolicy` 字段（dsh=`fresh-session`，goose=`resume`），随 catalog 实施而非现场硬编码；
+- **F-3（上游反馈项）**：dsh-fleet 桥在异常客户端断开序列后**静默退出**（无栈无日志），两次复现——建议回馈 dsh-fleet（同 A3 渠道）。
+
+环境备注：Electron 43.3.0 dev（`ELECTRON_DISABLE_SANDBOX=1`，SUID 未配置的权宜）；Electron 二进制经 npmmirror 镜像；桥经交接单命令多次重启（验收时 pid 586528）。
+
+
 
 | 输入 | 用途 | 影响范围 |
 |---|---|---|

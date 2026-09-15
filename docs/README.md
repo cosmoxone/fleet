@@ -4,7 +4,7 @@
 
 **代码已实现**：
 - **main**：P0–P5 全部落定（仓库骨架+契约治理 / `core/` 调度核心 35 测试 / `runtime/` goose 驱动 + acp-smoke / P2 快照+品牌 / P3 打包管线+CI release / P4 文档 / P5 图标）；v0.1.0 release 管线跑通
-- **`feature/dsh-driver`**（领先 main 6 commits）：dsh 驱动 c1–c3 **代码全部完成**，自动化验证全绿（单测 42+699、契约冒烟、真实 LLM E2E）——**唯一阻塞：5B 桌面人工验收（约 5 分钟）→ 通过即合并**（交接单：`features/dsh-driver-session-report.md` §5B/§6）
+- **`feature/dsh-driver`**（领先 main 7 commits）：dsh 驱动 c1–c4 **已实施并通过 5B 桌面验收（2026-09-15 17:51，7/7）**——验收记录与过程发现见 `features/dsh-driver-session-report.md` §5B（F-1 已修；F-2 转 catalog `reconnectPolicy`；F-3 待上游反馈）
 - 2026-09-14/15 会话：纯设计产出（下表 9 新 + 2 改，**未提交**），零代码变更
 
 **已设计待实施**（参考设计，见下表）：ORCH-001 桥 / HUB-001 fleetd / NAMING-001 / HERMES-001 / OPENCLAW-001
