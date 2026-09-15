@@ -4732,5 +4732,14 @@
   },
   "userMessage.removeImageFromEdit": {
     "defaultMessage": "Remove image from message"
+  },
+  "capabilityRoute.unsupported.title": {
+    "defaultMessage": "Not available on this node"
+  },
+  "capabilityRoute.unsupported.description": {
+    "defaultMessage": "The driver for this node does not support this feature. {modelLabel}"
+  },
+  "capabilityRoute.backToChat": {
+    "defaultMessage": "Back to chat"
   }
 }
