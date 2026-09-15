@@ -34,6 +34,12 @@ const wrapperNode: FleetNode = {
   args: ['-c', `exec ${TSX} ${AGENT_MAIN} agent --node dsh-local-minimax-m3`],
 };
 
+// Live-node dogfood tests need the local dsh bridge; skip elsewhere (CI).
+const bridgeUp = await fetch('http://127.0.0.1:3284/status', {
+  headers: { 'X-Secret-Key': 'fleet-local-dsh-e2e' },
+}).then((r) => r.ok, () => false);
+const itLive = bridgeUp ? it : it.skip;
+
 describe('stdio driver (F-3 spike)', () => {
   it('registers in the driver registry with a capability declaration', () => {
     expect(resolveDriver('stdio')).toBe(stdioDriver);
@@ -49,7 +55,7 @@ describe('stdio driver (F-3 spike)', () => {
     expect(validateFleetNode({ ...echoNode, env: { A: 1 } as unknown as Record<string, string> })).toBe('envNotStrings');
   });
 
-  it(
+  itLive(
     'runs a real ACP session over spawned stdio (self-dogfood: fleet agent face)',
     { timeout: 90_000 },
     async () => {
@@ -77,7 +83,7 @@ describe('stdio driver (F-3 spike)', () => {
     }
   );
 
-  it(
+  itLive(
     'spawns through wrapper commands (ssh-template viability, N1)',
     { timeout: 90_000 },
     async () => {

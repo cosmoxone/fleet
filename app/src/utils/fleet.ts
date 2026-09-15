@@ -29,7 +29,7 @@ export interface ExternalBackend {
  * (FLEET-CATALOG-001 S2); CI verifies the artifact stays in sync.
  */
 export const FLEET_DRIVER_OPTIONS = Object.entries(DRIVER_CAPABILITY_ENTRIES)
-  .filter(([, entry]) => entry.capabilities.desktopShell !== false)
+  .filter(([, entry]) => (entry.capabilities as FleetDriverCapabilities).desktopShell !== false)
   .map(([id, entry]) => ({
     id,
     displayName: entry.displayName,
