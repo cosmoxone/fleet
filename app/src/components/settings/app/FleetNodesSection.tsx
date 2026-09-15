@@ -4,9 +4,15 @@ import { Button } from '../../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../ui/card';
 import { AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { FleetNodeConfig } from '../../../utils/settings';
-import { FleetNodeValidationError, validateFleetNode } from '../../../utils/fleet';
+import {
+  effectiveFleetDriver,
+  FLEET_DRIVER_OPTIONS,
+  FleetNodeValidationError,
+  validateFleetNode,
+} from '../../../utils/fleet';
 import { defineMessages, useIntl } from '../../../i18n';
 import { v4 as uuidv4 } from 'uuid';
+import { Select } from '../../ui/Select';
 
 const i18n = defineMessages({
   title: {
@@ -16,7 +22,7 @@ const i18n = defineMessages({
   description: {
     id: 'fleetNodesSection.description',
     defaultMessage:
-      'Remote goose servers you can open chat windows on via File → New Chat on Node…',
+      'Remote ACP backends (goose serve or DeepSeek Harness via the acp-ws bridge) you can open chat windows on via File → New Chat on Node…',
   },
   empty: {
     id: 'fleetNodesSection.empty',
@@ -25,6 +31,18 @@ const i18n = defineMessages({
   addNode: {
     id: 'fleetNodesSection.addNode',
     defaultMessage: 'Add Node',
+  },
+  driver: {
+    id: 'fleetNodesSection.driver',
+    defaultMessage: 'Driver',
+  },
+  driverGoose: {
+    id: 'fleetNodesSection.driverGoose',
+    defaultMessage: 'goose (goose serve, ACP over WebSocket)',
+  },
+  driverDsh: {
+    id: 'fleetNodesSection.driverDsh',
+    defaultMessage: 'DeepSeek Harness (dsh-acp-demo via acp-ws bridge)',
   },
   nodeName: {
     id: 'fleetNodesSection.nodeName',
@@ -42,9 +60,13 @@ const i18n = defineMessages({
     id: 'fleetNodesSection.secretKey',
     defaultMessage: 'Secret Key',
   },
-  secretKeyPlaceholder: {
-    id: 'fleetNodesSection.secretKeyPlaceholder',
+  secretKeyPlaceholderGoose: {
+    id: 'fleetNodesSection.secretKeyPlaceholderGoose',
     defaultMessage: 'GOOSE_SERVER__SECRET_KEY on the node',
+  },
+  secretKeyPlaceholderDsh: {
+    id: 'fleetNodesSection.secretKeyPlaceholderDsh',
+    defaultMessage: 'acp-ws bridge --token on the node',
   },
   certFingerprint: {
     id: 'fleetNodesSection.certFingerprint',
@@ -154,12 +176,22 @@ export default function FleetNodesSection() {
     }
   };
 
+  /** Commit an explicit node state (used by controls without blur, e.g. Select). */
+  const commitNodeWith = async (node: FleetNodeConfig) => {
+    const error = validateNode(intl, node);
+    setErrors((prev) => ({ ...prev, [node.id]: error }));
+    if (!error) {
+      await saveNodes(nodes.map((n) => (n.id === node.id ? node : n)));
+    }
+  };
+
   const addNode = async () => {
     const draft: FleetNodeConfig = {
       id: uuidv4(),
       name: '',
       url: '',
       secret: '',
+      driver: 'goose',
     };
     await saveNodes([...nodes, draft]);
   };
@@ -207,6 +239,37 @@ export default function FleetNodesSection() {
                 </Button>
               </div>
               <div className="space-y-2">
+                <label htmlFor={`fleet-driver-${node.id}`} className="text-text-primary text-xs">
+                  {intl.formatMessage(i18n.driver)}
+                </label>
+                <Select
+                  inputId={`fleet-driver-${node.id}`}
+                  isSearchable={false}
+                  options={FLEET_DRIVER_OPTIONS.map((option) => ({
+                    value: option.id,
+                    label:
+                      option.id === 'dsh'
+                        ? intl.formatMessage(i18n.driverDsh)
+                        : intl.formatMessage(i18n.driverGoose),
+                  }))}
+                  value={{
+                    value: effectiveFleetDriver(node.driver),
+                    label:
+                      effectiveFleetDriver(node.driver) === 'dsh'
+                        ? intl.formatMessage(i18n.driverDsh)
+                        : intl.formatMessage(i18n.driverGoose),
+                  }}
+                  onChange={(option) => {
+                    const value = (option as { value: string } | null)?.value;
+                    if (value && value !== effectiveFleetDriver(node.driver)) {
+                      updateNode(node.id, 'driver', value);
+                      void commitNodeWith({ ...node, driver: value });
+                    }
+                  }}
+                  isDisabled={isSaving}
+                />
+              </div>
+              <div className="space-y-2">
                 <label htmlFor={`fleet-url-${node.id}`} className="text-text-primary text-xs">
                   {intl.formatMessage(i18n.serverUrl)}
                 </label>
@@ -234,7 +297,11 @@ export default function FleetNodesSection() {
                 <Input
                   id={`fleet-secret-${node.id}`}
                   type="password"
-                  placeholder={intl.formatMessage(i18n.secretKeyPlaceholder)}
+                  placeholder={intl.formatMessage(
+                    effectiveFleetDriver(node.driver) === 'dsh'
+                      ? i18n.secretKeyPlaceholderDsh
+                      : i18n.secretKeyPlaceholderGoose
+                  )}
                   value={node.secret}
                   onChange={(e) => updateNode(node.id, 'secret', e.target.value)}
                   onBlur={() => commitNode(node.id)}

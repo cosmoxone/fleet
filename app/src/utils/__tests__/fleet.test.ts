@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildFleetNodeSubmenu,
+  effectiveFleetDriver,
+  FLEET_DRIVER_OPTIONS,
   FLEET_MENU_EMPTY_HINT,
   getFleetCspBackends,
   getFleetNodeBackend,
@@ -24,6 +26,7 @@ describe('getFleetNodeBackend', () => {
       source: 'settings',
       url: 'https://192.168.1.11:3284',
       secret: 'secret-1',
+      driver: 'goose',
       fleetNodeId: 'node-1',
       fleetNodeName: 'dev-box',
     });
@@ -127,5 +130,32 @@ describe('validateFleetNode', () => {
     expect(
       validateFleetNode(node({ url: 'https://192.168.1.11:3284', certFingerprint: 'AA:BB' }))
     ).toBeNull();
+  });
+});
+
+describe('driver selection', () => {
+  it('carries the configured driver through to the external backend', () => {
+    const settings = {
+      ...defaultSettings,
+      externalBackends: [node({ driver: 'dsh' })],
+    };
+    const backend = getFleetNodeBackend(settings, 'node-1');
+    expect(backend?.driver).toBe('dsh');
+  });
+
+  it('normalizes missing and unknown drivers to goose', () => {
+    expect(effectiveFleetDriver(undefined)).toBe('goose');
+    expect(effectiveFleetDriver('goose')).toBe('goose');
+    expect(effectiveFleetDriver('dsh')).toBe('dsh');
+    expect(effectiveFleetDriver('nope')).toBe('goose');
+    const settings = {
+      ...defaultSettings,
+      externalBackends: [node({ driver: 'nope' })],
+    };
+    expect(getFleetNodeBackend(settings, 'node-1')?.driver).toBe('goose');
+  });
+
+  it('mirrors the runtime driver registry options', () => {
+    expect(FLEET_DRIVER_OPTIONS.map((option) => option.id)).toEqual(['goose', 'dsh']);
   });
 });

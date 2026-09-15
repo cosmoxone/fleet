@@ -18,6 +18,8 @@ export interface FleetNodeConfig {
   secret: string;
   certFingerprint?: string;
   workingDir?: string;
+  /** Backend driver: 'goose' (default when omitted) | 'dsh' (DeepSeek Harness). */
+  driver?: string;
 }
 
 export interface KeyboardShortcuts {

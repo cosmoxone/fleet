@@ -30,6 +30,13 @@
           "sha256": "046a471c253581e5945ec5353305c08981403abbcbf769d344e29a7da094bf24"
         }
       }
+    },
+    "dsh": {
+      "protocol": "acp-over-websocket",
+      "upstream": "npm @deepseek-ai/dsh-acp-demo (ACP v1 over stdio) + dsh-fleet bridge/acp-ws.mjs (goose-serve-compatible WS contract)",
+      "validatedVersion": "0.1.1-rc.2",
+      "distribution": "no binary assets — nodes are deployed by dsh-fleet (scripts/containers); the shell connects over WebSocket only",
+      "notes": "rc.2: no session/list|resume|close; session/cancel returns -32601 (unimplemented); mcpServers/additionalDirectories must be empty; model is fixed server-side (cordis.yml)"
     }
   }
 }

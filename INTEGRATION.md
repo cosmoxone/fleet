@@ -17,9 +17,10 @@ fleet 是多 Agent 调度壳项目。goose 以"拉取 + 引用"方式消费：**
 
 - 协议：[Agent Client Protocol](https://agentclientprotocol.com)，HTTP 基址上 `GET /acp` 升级 WebSocket，`?token=<secret>` 鉴权
 - goose 实现：`goose serve --host 0.0.0.0 --port <p> --tls` + `GOOSE_SERVER__SECRET_KEY=<secret>`（stock 二进制，零改动）
+- dsh 实现（第二驱动，2026-08-30 接入）：`@deepseek-ai/dsh-acp-demo`（ACP v1 over stdio）经 dsh-fleet `bridge/acp-ws.mjs` 暴露同一契约（`/status` + `/acp?token=` + 非升级 GET→406 + TLS 指纹 `sha256/<base64>`）；节点模型 `driver: 'dsh'`，缺省仍为 goose。rc.2 能力面缺口（无 `session/list|resume|close`、`session/cancel` 未挂载、`mcpServers` 非空即拒）由壳侧降级处理，见 `docs/features/dsh-harness-driver.md`
 - 传输安全：TLS 自签证书 + SHA-256 指纹钉扎；**指纹校验在 Electron 传输层实施**（驱动层只携带 `certFingerprint` 字段）
-- 契约测试：`runtime/acp-smoke/acp-smoke.mjs`（initialize 握手）+ `runtime/drivers/goose/driver.test.ts`（URL/能力面）
-- 治理：ACP 是跨厂商公开协议，goose 面为其公开 CLI 契约 → 稳定性高；升级 = 改 `runtime/versions.json` + 冒烟通过
+- 契约测试：`runtime/acp-smoke/acp-smoke.mjs`（initialize 握手）+ `runtime/drivers/goose/driver.test.ts`（URL/能力面）+ `runtime/drivers/dsh/driver.test.ts`（能力面/注册表）
+- 治理：ACP 是跨厂商公开协议，goose 面为其公开 CLI 契约、dsh 面为其 npm 包 + 桥契约 → 升级 = 改 `runtime/versions.json` + 冒烟通过
 
 ## 契约 2：壳 ↔ 后端二进制（goose 驱动专属）
 
@@ -31,13 +32,12 @@ fleet 是多 Agent 调度壳项目。goose 以"拉取 + 引用"方式消费：**
 
 ## 契约 3：壳内 main ↔ renderer（已内部化，非外部契约）
 
-快照后这 36 个 `ipcMain.handle` 是**自有代码的内部接口**，仅作快照自检清单保留（P2 快照落位时核对齐全）：
+快照后这 37 个 `ipcMain.handle` 是**自有代码的内部接口**，仅作快照自检清单保留（P2 落位 36 个 + dsh 驱动新增 `get-acp-driver`）：
 
 ```
 open-external, directory-chooser, add-recent-dir, list-recent-dirs,
 list-git-worktree-dirs, get-setting, set-setting, get-secret-key, get-acp-url,
-set-menu-bar-icon, get-menu-bar-icon-state, set-dock-icon, get-dock-icon-state,
-open-notifications-settings, set-wakelock, get-wakelock-state, set-spellcheck,
+get-acp-driver, set-menu-bar-icon, get-menu-bar-icon-state, set-dock-icon, get-dock-icon-state,open-notifications-settings, set-wakelock, get-wakelock-state, set-spellcheck,
 get-spellcheck-state, is-any-window-focused, get-is-fullscreen,
 select-file-or-directory, select-recipe-file, read-goosehints, write-goosehints,
 select-import-session-file, check-ollama, write-file, ensure-directory,
