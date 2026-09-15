@@ -149,3 +149,4 @@ catalog 表达；节点并发满时 dispatch 排队（上限 10s）或立即返�
 | v0.1 | 2026-09-14 | 初稿：角色反转本质 / 路径对比 / W1-W7 / 工具面草案 / 双模式权限 / 复用矩阵 / P7-P10 / 风险（含 SSH 可达性注记） |
 | v0.2 | 2026-09-14 | 吸收 OpenClaw Nodes 对照（`orchestration-ecosystem-notes.md` v1.1）：§5 工具面治理三层 + 并发容量语义（OC-N2/N4）；§6 审批绑定防 TOCTOU（OC-N3）；§9 递归风险补 OpenClaw 无环检测佐证；关联补 harness 分析文档出处 |
 | v0.3 | 2026-09-15 | 对齐 FLEET-HUB-001（`fleet-core-service-design.md`）：新增 §0 面定位声明（桥=面②，standalone/attached 双模式）；P7 落定；试点路径（standalone）不受影响 |
+| v0.4 | 2026-09-15 | **M0 试点完成并合并**（`bridge/`，7 单测 + 真节点 E2E + goose CLI 消费全链路 GOOSE-TO-FLEET-OK）：standalone 模式直接消费 core 注册表（slug 键）；聚合兼容 sessionUpdate/updateKind 两判别键（SDK 1.3 vs v2 schema）；权限 deny-first（reject_once）；goose 扩展配置字段经 goose-docs 核实为 cmd/name（非 command）。attached 模式与 P8-P10 决策留给 M1 |
