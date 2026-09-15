@@ -19,7 +19,7 @@ import type { FleetNode } from '../../../core/node';
  * (`ssh host -- hermes acp`) is just another command (N1 evaluation outcome).
  */
 
-const HEALTH_CHECK_TIMEOUT_MS = 8000;
+const HEALTH_CHECK_TIMEOUT_MS = 30_000; // spawned agents cold-boot (lazy deps, e.g. hermes)
 
 export const stdioDriver: AcpDriver = {
   id: 'stdio',
