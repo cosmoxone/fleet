@@ -182,3 +182,4 @@
 | v0.3 | 2026-09-15 | 新增 §4bis 北向编排者接入：命名规范（name/slug/`fleet/<slug>` 三层）；编排者矩阵（goose/hermes/openclaw/opencode/dsh/workbuddy/omnigent/编辑器 → 面②/③/⑥，判据=零 fleet 代码）；**面⑥ stdio ACP agent**（`fleet agent [--node]`，openclaw acp 架构镜像）+ `fleet acpx-export`（fleet 由 acpx 消费者变生产者）。**同日 review 补**：M2-alt 里程碑（面⑥ 2–4 天、轻于面③、可先行）；命名细则外移 `node-naming-spec.md`（FLEET-NAMING-001） |
 | v0.4 | 2026-09-15 | **V1 核实落账**：dsh-orchestra/dsh-fleet web 均非 ACP client（面③无近期消费者）→ 里程碑重排序：**M2-alt（面⑥+acpx-export）先行、M2（面③）后置**（dsh 本体即 stdio 消费者实证）；M0 同日完成（goose CLI→桥→dsh 全链路） |
 | v0.5 | 2026-09-15 | 面⑥ 多节点语义澄清（用户问询触发）：三层模型——宿主层（acpx-export 一节点一条目，v1 主路径，与 dsh 10-provider 级联同构）/ 会话层（`_meta.fleet.node` 路由键，可选）/ 提示层（@slug 文本路由，v2 候选）；并明确单会话并行编排归面② 桥（分工边界） |
+| v0.6 | 2026-09-15 | M2-alt v1 范围裁定：层1 核心+hub 默认节点最小版；层2 `_meta` 路由推迟（无现成消费者会发该键，防规划剧场；键名已定，触发即加） |
