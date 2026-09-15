@@ -8,7 +8,7 @@
 - **F-2 驱动能力 catalog（S1–S5）**：设计 v0.3 实施 + 5B-lite 点检通过并合并（`64b0d68`）——单一源/codegen+CI 防漂移/UI 预门控/reconnectPolicy 修复（断线自动新会话）/节点 slug；测试 64+705 全绿
 - main 领先 origin 25 commits（**未推送**，推送触发 release 流水线，时机待定）
 
-**M0 桥试点已完成并合并（2026-09-15 晚）**：goose CLI 经 fleet-bridge 扩展指挥 dsh 节点全链路通（GOOSE-TO-FLEET-OK）。**V1 门已过（2026-09-15 晚）**：dsh-orchestra/dsh-fleet web 均非 ACP client → **fleetd 排序修正：M2-alt 面⑥（stdio agent+acpx-export，2–4 天）先行**，M2 面③ 后置；dsh 本体经 subagent-acp 即面⑥ 消费者。**下一步**：F-12 M1（fleetd 最小版+桥 attached）或 M2-alt，二选一启动
+**M0 桥试点已完成并合并（2026-09-15 晚）**：goose CLI 经 fleet-bridge 扩展指挥 dsh 节点全链路通（GOOSE-TO-FLEET-OK）。**夜班车收官（2026-09-15 深夜 → 09-16 00:12，v0.2.0）**：fleetd M1 全量（服务+桥 attached/回落+权限中枢+会话管理器+companion 面④）；hermes 全链路接入（HERMES-B1-OK）；openclaw 升级 2026.9.4+半程接入（等模型鉴权）；F-3 后续桌面回环物化（stdio 节点可开窗，desktopShell 门控翻转）；CI 全天红灯抢修转绿。测试 106+707。**收口 v0.2.0 tag**
 
 **后续路径**：`planning/fleet-roadmap-v2.md`（v1.5：F-1…F-12 + 依赖图 + §9 周历）；
 精益执行顺序见 `progress/2026-09-15_hub-design-review.md` §8
@@ -44,6 +44,9 @@
 | [progress/2026-09-15_hub-design-review.md](./progress/2026-09-15_hub-design-review.md) | — | 设计网络四维评审记录 |
 | [progress/2026-09-15_5b-acceptance-retrospective.md](./progress/2026-09-15_5b-acceptance-retrospective.md) | — | **5B 验收全历程复盘（P0-P4 排障 / M1-M8 方法论 / L1-L10 教训 / agent 最佳实践 8 条）** |
 | [progress/2026-09-15_m0-bridge-retrospective.md](./progress/2026-09-15_m0-bridge-retrospective.md) | — | **M0 桥试点复盘（P0-P7 / SDK 试错 / goose 配置字段坑 / M1'-M8' 方法论）** |
+| [progress/2026-09-15_night-fleetd-b1-f3-retrospective.md](./progress/2026-09-15_night-fleetd-b1-f3-retrospective.md) | — | **夜班车复盘（fleetd M1 收官 / B1 双驱动 / CI 抢修 / F-3 回环；P0-P6 / M9-M14 / L1-L5）** |
+| [progress/2026-09-15_openclaw-upgrade-notes.md](./progress/2026-09-15_openclaw-upgrade-notes.md) | — | **openclaw 升级实录（npm 前缀分裂 / schema 迁移 / 服务切版 / OC-1~3 遗留）** |
+| [progress/2026-09-15_hermes-install-notes.md](./progress/2026-09-15_hermes-install-notes.md) | — | **hermes 安装实录（venv / 冷启动 / minimax-anthropic 通道三轮试错 / 节点配方）** |
 
 ## fork 时期（历史工件，快照基线 `0e17bf7..f4066f1`）
 
