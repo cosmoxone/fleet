@@ -59,7 +59,7 @@
 | # | 特性 | 内容 | 状态/估时 | 完成判据 |
 |---|---|---|---|---|
 | F-1 | dsh 驱动合并 | 5B 验收 → §6 合并 | **待人工（D-1）** | 交接单 5B 全勾 + main 合并 |
-| F-2 | **驱动能力 catalog**（=A2 升格） | 设计文档 **v0.2 已自评审**（`docs/features/driver-capability-catalog-design.md`，FLEET-CATALOG-001：schema 含 reconnectPolicy/onboardingGuard、codegen+CI 防漂移、S1-S6）；含节点命名 slug（`node-naming-spec.md`）；§3.1 为其输入草案 | 设计完成；实施 1–2 天（+命名 0.5–1 天） | 判据见设计文档 §7（含：断线重连 dsh 自动新会话无错误屏=验收 F-2 缺口回归） |
+| F-2 | **驱动能力 catalog**（=A2 升格） | **已实施 S1–S5**（分支 `feature/f2-catalog`，5 commits，测试 64+705 全绿；设计 v0.3 实施记录见 `driver-capability-catalog-design.md`：S1 单一源/S2 codegen+CI/S3 预门控/S4 reconnectPolicy 修复/S5 slug；S6 后置、app 表单缓行 R7）；含节点命名 slug（`node-naming-spec.md`） | **待 5B-lite 真机点检后合并**（点检清单：dsh 窗模型栏中性 label、recipes/sessions/schedules 路由空态、断线重连自动新会话无错误屏） | 判据见设计文档 §7；点检=复盘 L1 纪律 |
 | F-3 | **本地 stdio 桥驱动**（=A1） | 接 @agentclientprotocol 官方桥（codex/claude）；**spike 范围含远程传输评估**（`'ssh'` transport / ssh 命令模板 / 隧道回环物化，`docs/research/nf-board-notes.md` N1）；stdio 注册表格式参照/兼容 OpenClaw acpx（转换器隔离，`docs/research/remote-node-operation-notes.md` §3） | F-2 后 spike 1–2 天 | spike：stdio driver + acp-smoke 直连桥进程跑通一个真实 agent 会话 |
 | F-4 | 快照刷新治理 | 定期刷 goose ui/desktop 快照（INTEGRATION 既有流程）；插件兼容验证纳入回归 | 例行（每次快照刷新 +0.5 天回归） | 快照刷新 PR 含 fleet-nodes/wb 插件兼容验证清单 |
 | F-11 | **ACP→MCP 编排桥**（候选，v1.2 新增） | agent-native 舰队指挥：任何 MCP agent 经桥 dispatch 节点（复用 core/runtime；A2 catalog 第四消费方；F-8 首发包候选） | 参考设计 v0.3 待评审（`docs/features/acp-mcp-bridge-design.md`：P7 已落定=桥为 FLEET-HUB-001 面②；P8–P10 待评审） | 试点切片 0.5–1 天，判据见设计文档 §10 |
