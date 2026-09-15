@@ -25,6 +25,7 @@ import os from 'node:os';
 import fs from 'node:fs';
 import { loadBridgeNodes, findBridgeNode } from './nodes';
 import { dispatchToNode } from './dispatch';
+import { dispatchWithFallback } from './attach';
 import { resolveDriverForNode } from '../../runtime/drivers';
 
 function defaultSettingsPath(): string {
@@ -101,10 +102,15 @@ export function createBridgeServer(settingsPath: string): Server {
         return { content: [{ type: 'text', text: JSON.stringify(report) }] };
       }
       if (tool === 'dispatch') {
-        const result = await dispatchToNode(
+        // M1: attached mode when fleetd is discovered; silent standalone fallback.
+        const result = await dispatchWithFallback(
           node,
-          String(args.prompt ?? ''),
-          typeof args.timeoutMs === 'number' ? args.timeoutMs : 120_000
+          {
+            slug: nodeKey,
+            prompt: String(args.prompt ?? ''),
+            timeoutMs: typeof args.timeoutMs === 'number' ? args.timeoutMs : 120_000,
+          },
+          process.env.FLEETD_DISCOVERY_FILE
         );
         return {
           content: [
@@ -113,6 +119,7 @@ export function createBridgeServer(settingsPath: string): Server {
               text: JSON.stringify(
                 {
                   node: nodeKey,
+                  via: result.via,
                   sessionId: result.sessionId,
                   stopReason: result.stopReason,
                   updateCount: result.updateCount,
