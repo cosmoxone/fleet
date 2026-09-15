@@ -135,3 +135,100 @@ describe('bridge attached mode (M1)', () => {
     expect(resolveFleetd('/nonexistent')).toBeNull();
   });
 });
+
+describe('fleetd permission endpoints + session reuse (M1 remainder)', () => {
+  it('exposes pending permissions and answers them by id', async () => {
+    const hub = fleetd.permissionHub;
+    const pending = hub.wait({
+      node: 'demo-node',
+      sessionId: 's',
+      options: [{ optionId: 'allow', kind: 'allow_once' }],
+      deadlineMs: 5000,
+    });
+    await new Promise((r) => setTimeout(r, 10));
+
+    const list = await fetch(`http://127.0.0.1:${fleetd.port}/permissions`, {
+      headers: { 'x-secret-key': fleetd.token },
+    });
+    const body = (await list.json()) as { pending: { id: string }[] };
+    expect(body.pending).toHaveLength(1);
+
+    const res = await fetch(
+      `http://127.0.0.1:${fleetd.port}/permissions/${body.pending[0]!.id}/answer`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-secret-key': fleetd.token },
+        body: JSON.stringify({ outcome: 'selected', optionId: 'allow' }),
+      }
+    );
+    expect(res.status).toBe(200);
+    expect(await pending).toEqual({ outcome: { outcome: 'selected', optionId: 'allow' } });
+
+    const missing = await fetch(`http://127.0.0.1:${fleetd.port}/permissions/nope/answer`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-secret-key': fleetd.token },
+      body: '{}',
+    });
+    expect(missing.status).toBe(404);
+  });
+
+  it('streams permission events over SSE', async () => {
+    const controller = new AbortController();
+    const stream = await fetch(`http://127.0.0.1:${fleetd.port}/events`, {
+      headers: { 'x-secret-key': fleetd.token },
+      signal: controller.signal,
+    });
+    const reader = stream.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const readSome = async (): Promise<string[]> => {
+      const { value } = await reader.read();
+      buffer += decoder.decode(value);
+      const frames = buffer.split('\n\n');
+      buffer = frames.pop() ?? '';
+      return frames;
+    };
+    const hello = await readSome();
+    expect(hello[0]).toContain('event: hello');
+
+    const hub = fleetd.permissionHub;
+    const pending = hub.wait({ node: 'n', sessionId: 's', options: [], deadlineMs: 2000 });
+    const frame = await readSome();
+    expect(frame.join('')).toContain('permission_pending');
+    void pending.catch(() => undefined);
+    controller.abort();
+  });
+
+  it('reuses the backend session for a stable sessionKey', async () => {
+    let calls = 0;
+    const local = await createFleetd({
+      settingsPath: SETTINGS,
+      dispatchImpl: async (nodeKey, prompt, timeoutMs, sessionKey) => {
+        calls += 1;
+        expect(sessionKey).toBe('stable-1');
+        // Simulate the session-manager contract: same key → reused prefix.
+        return {
+          sessionId: calls === 1 ? 'fresh' : 'reused:fresh',
+          stopReason: 'end_turn',
+          text: prompt,
+          updateCount: 1,
+          permissionRequests: 0,
+        };
+      },
+    });
+    try {
+      const post = (sessionKey?: string) =>
+        fetch(`http://127.0.0.1:${local.port}/dispatch`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-secret-key': local.token },
+          body: JSON.stringify({ node: 'demo-node', prompt: 'hi', sessionKey }),
+        }).then((r) => r.json() as Promise<{ sessionId: string }>);
+
+      expect(await post('stable-1')).toMatchObject({ sessionId: 'fresh' });
+      expect(await post('stable-1')).toMatchObject({ sessionId: 'reused:fresh' });
+      expect(calls).toBe(2);
+    } finally {
+      await local.close();
+    }
+  });
+});

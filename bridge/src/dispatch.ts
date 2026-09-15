@@ -9,6 +9,7 @@ import {
 import { createWebSocketStream } from '@agentclientprotocol/sdk/experimental/ws-client';
 import type { FleetNode } from '../../core/node';
 import { acpWebSocketUrlFromHttpBase } from '../../core/url';
+import { createStdioAcpStream } from './stdioTransport';
 
 /**
  * FLEET-ORCH-001 M0: the conversational half of the ACP→MCP bridge.
@@ -116,10 +117,14 @@ export async function openBridgeSession(
       return permissionPolicy(context.params as Parameters<PermissionPolicy>[0]) as never;
     });
 
-  const wsUrl = acpWebSocketUrlFromHttpBase(node.url, node.secret);
+  // Transport by node shape: `command` nodes speak stdio (F-3), others WS.
   const connection = options.connect
     ? options.connect(app)
-    : app.connect(createWebSocketStream(wsUrl, { protocols: [] }));
+    : node.command
+      ? app.connect(createStdioAcpStream(node))
+      : app.connect(createWebSocketStream(acpWebSocketUrlFromHttpBase(node.url, node.secret), {
+          protocols: [],
+        }));
 
   await connection.agent.request(methods.agent.initialize, {
     protocolVersion: PROTOCOL_VERSION,
